@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ziggy: expõe route() para Link/href nas páginas React -->
+    @routes
+    <!-- Scripts do Vite (APENAS UM AQUI) -->
+    @vite(['resources/js/app.tsx'])
+    @inertiaHead
+</head>
+<body class="font-sans antialiased bg-base">
+    <!-- O React carrega APENAS AQUI -->
+    @inertia
+</body>
+</html>

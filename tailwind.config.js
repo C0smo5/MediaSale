@@ -1,0 +1,40 @@
+module.exports = {
+  content: [
+    './resources/**/*.blade.php',
+    './resources/**/*.js',
+    './resources/**/*.jsx',
+    './resources/**/*.tsx',
+    './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+    './storage/framework/views/*.php',
+    './vendor/laravel/jetstream/**/*.blade.php',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        base: '#ebe4f7',
+        surface: '#ffffff',
+        'surface-alt': '#f0eeff',
+        'green-soft': '#ecfdf5',
+        'orange-soft': '#fff7ed',
+        'purple-soft': '#ede9fe',
+        ink: '#1a1040',
+        muted: '#6b6b8a',
+        brand: '#7c3aed',
+        'brand-light': '#a855f7',
+        'emerald-brand': '#059669',
+        'orange-brand': '#ea580c',
+      },
+      borderColor: {
+        'brand-soft': 'rgba(124, 58, 237, 0.10)',
+        'brand-default': 'rgba(124, 58, 237, 0.15)',
+        'emerald-default': 'rgba(5, 150, 105, 0.25)',
+        'orange-default': 'rgba(234, 88, 12, 0.25)',
+      },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [require('@tailwindcss/forms')],
+};

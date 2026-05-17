@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from '@inertiajs/react';
 import { FilterIcon, XIcon, MenuIcon } from './Icons/Icons';
 
 export const Navbar: React.FC = () => {
@@ -37,10 +38,12 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <a href="#pricing" className="text-sm font-medium text-white/75 hover:text-white transition-colors px-4 py-2">Entrar</a>
-            <a href="#pricing" className="gradient-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-brand/25 hover:-translate-y-0.5 transition-all duration-200">
+            <Link href={route('login')} className="text-sm font-medium text-white/75 hover:text-white transition-colors px-4 py-2">
+              Entrar
+            </Link>
+            <Link href={route('register')} className="gradient-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-brand/25 hover:-translate-y-0.5 transition-all duration-200">
               Começar Grátis
-            </a>
+            </Link>
           </div>
 
           <button className="md:hidden p-2 text-white/85 hover:text-white transition-colors" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -58,8 +61,12 @@ export const Navbar: React.FC = () => {
               </a>
             ))}
             <div className="pt-3 mt-2 space-y-2 border-t border-white/[0.08]">
-              <a href="#pricing" className="block px-4 py-3 text-sm font-medium text-white/80 hover:text-white rounded-xl transition-colors">Entrar</a>
-              <a href="#pricing" className="block gradient-brand text-white text-sm font-semibold px-5 py-3 rounded-xl text-center">Começar Grátis</a>
+              <Link href={route('login')} onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-medium text-white/80 hover:text-white rounded-xl transition-colors">
+                Entrar
+              </Link>
+              <Link href={route('register')} onClick={() => setMobileOpen(false)} className="block gradient-brand text-white text-sm font-semibold px-5 py-3 rounded-xl text-center">
+                Começar Grátis
+              </Link>
             </div>
           </div>
         </div>

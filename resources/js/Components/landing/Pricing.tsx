@@ -20,8 +20,8 @@ export const Pricing: React.FC = () => {
 
   return (
     <section id="pricing" className="py-24 sm:py-32 bg-gradient-to-b from-purple-soft/38 via-base to-purple-soft/32 relative overflow-hidden">
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand/[0.06] rounded-full blur-3xl animate-float-orb pointer-events-none" />
-      <div className="absolute -top-20 -right-40 w-96 h-96 bg-emerald-brand/[0.05] rounded-full blur-3xl animate-float-delayed pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand/[0.06] rounded-full blur-2xl animate-float-orb pointer-events-none" />
+      <div className="absolute -top-20 -right-40 w-96 h-96 bg-emerald-brand/[0.05] rounded-full blur-2xl animate-float-delayed pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimateOnScroll className="text-center mb-12">
@@ -60,7 +60,7 @@ export const Pricing: React.FC = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-sm text-muted">R$</span>
-                    <span className="font-display text-4xl font-bold text-ink">{isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
+                    <span className="font-display text-4xl font-bold text-ink transition-all duration-300">{isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
                     <span className="text-sm text-muted">/mês</span>
                   </div>
                   {isAnnual && <p className="text-xs text-emerald-brand font-medium mt-1">Cobrança anual — economize 15%</p>}
@@ -82,7 +82,7 @@ export const Pricing: React.FC = () => {
                   </div>
                 </div>
                 <button onClick={() => showToast(`Plano ${plan.name} — em breve disponível!`)}
-                  className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+                  className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 ${
                     plan.highlighted ? 'gradient-brand text-white hover:shadow-lg hover:shadow-brand/25 hover:-translate-y-0.5'
                     : 'bg-purple-soft/70 text-ink border border-brand-default hover:bg-purple-soft hover:border-brand hover:shadow-md hover:-translate-y-0.5'}`}
                 >Começar com {plan.name}</button>
@@ -91,7 +91,7 @@ export const Pricing: React.FC = () => {
           ))}
         </div>
 
-        <AnimateOnScroll className="text-center mt-10">
+        <AnimateOnScroll className="text-center mt-10" delay={200}>
           <p className="text-sm text-muted">Todos os planos incluem 7 dias grátis. Cancele quando quiser, sem multa.</p>
         </AnimateOnScroll>
       </div>

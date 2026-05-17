@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 
 export function useTypingEffect(
   texts: string[],
-  typeSpeed: number = 45,
-  deleteSpeed: number = 25,
-  pauseTime: number = 2200
+  typeSpeed: number = 38,
+  deleteSpeed: number = 22,
+  pauseTime: number = 1800
 ): string {
   const [displayText, setDisplayText] = useState('');
   const [textIndex, setTextIndex] = useState(0);

@@ -1,22 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useLayoutEffect, useRef } from 'react';
+import { observeScrollReveal } from '@/lib/scrollReveal';
 
-export function useScrollAnimation(threshold: number = 0.12) {
+interface ScrollAnimationOptions {
+  threshold?: number;
+}
+
+export function useScrollAnimation(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
+    return observeScrollReveal(el, () => setIsVisible(true), threshold);
   }, [threshold]);
 
   return { ref, isVisible };

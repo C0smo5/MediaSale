@@ -5,11 +5,11 @@ import path from 'path';
 
 export default defineConfig({
     plugins: [
+        react(),
         laravel({
             input: 'resources/js/app.tsx',
             refresh: true,
         }),
-        react(),
     ],
     resolve: {
         alias: {

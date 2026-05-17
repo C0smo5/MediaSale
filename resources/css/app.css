@@ -7,8 +7,9 @@
 @keyframes float-orb-delayed { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-20px) scale(1.05); } }
 @keyframes float-orb-slow { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-15px) rotate(2deg); } }
 @keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-@keyframes card-pop { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes badge-pop { 0% { transform: scale(0); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes card-pop { 0% { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes badge-pop { 0% { transform: scale(0); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes soft-pulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(2); opacity: 0; } }
 @keyframes scan-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3); } 50% { box-shadow: 0 0 0 12px rgba(124, 58, 237, 0); } }
 @keyframes marquee-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 @keyframes fade-in-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -16,17 +17,39 @@
 .animate-float-orb { animation: float-orb 7s ease-in-out infinite; }
 .animate-float-delayed { animation: float-orb-delayed 8s ease-in-out infinite 1.5s; }
 .animate-float-slow { animation: float-orb-slow 9s ease-in-out infinite 3s; }
-.animate-blink-cursor { animation: blink-cursor 1s step-end infinite; }
+.animate-blink-cursor { animation: blink-cursor 0.9s step-end infinite; }
 .animate-card-pop { animation: card-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-badge-pop { animation: badge-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-scan-pulse { animation: scan-pulse 1.5s ease-in-out infinite; }
-.animate-marquee { animation: marquee-scroll 30s linear infinite; }
-.toast-enter { animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-badge-pop { animation: badge-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-scan-pulse { animation: scan-pulse 1.2s ease-in-out infinite; }
+.animate-soft-pulse { animation: soft-pulse 1.8s ease-out infinite; }
+.toast-enter { animation: fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-.scroll-reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-.scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+/* Marquee infinito */
+.marquee-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+.marquee-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: marquee-scroll 30s linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
 
-/* Navbar da landing — contraste com o fundo lilás da página */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-orb,
+  .animate-float-delayed,
+  .animate-float-slow,
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+/* Navbar da landing */
 .glass-nav {
   background: linear-gradient(180deg, #1a1040 0%, #231548 55%, #1e1240 100%);
   backdrop-filter: blur(14px);
@@ -51,7 +74,6 @@
   );
 }
 
-/* Superfície tipo “card” sem branco puro — lilás suave contínuo */
 .bg-panel-soft {
   background: linear-gradient(160deg, #ede9fe 0%, #f0eeff 38%, #f5f2fc 100%);
 }
@@ -63,7 +85,6 @@
 
 body { overflow-x: hidden; }
 
-/* Fundo geral: predominância lilás / lavanda, pouco branco “plano” */
 .bg-page-balanced {
   background-color: #ebe4f7;
   background-image:

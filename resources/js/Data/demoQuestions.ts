@@ -7,11 +7,47 @@ export const demoQuestions: DemoQuestion[] = [
     stores: ["Amazon", "Mercado Livre", "Magazine Luiza", "Americanas"],
     totalProducts: 847,
     results: [
-      { name: "Acer Aspire 5 — Ryzen 5, 8GB, 256GB SSD", price: "R$ 2.799", originalPrice: "R$ 3.299", rating: 4.5, store: "Amazon", match: 96, isBest: true },
-      { name: "Lenovo IdeaPad 3 — i5, 8GB, 512GB SSD", price: "R$ 2.899", originalPrice: null, rating: 4.3, store: "Mercado Livre", match: 89, isBest: false },
-      { name: "Dell Inspiron 15 — i5, 4GB, 256GB SSD", price: "R$ 2.599", originalPrice: null, rating: 4.0, store: "Magazine Luiza", match: 78, isBest: false },
-      { name: "HP 15s — Ryzen 3, 4GB, 256GB SSD", price: "R$ 2.199", originalPrice: "R$ 2.599", rating: 3.8, store: "Americanas", match: 65, isBest: false },
-    ]
+      {
+        name: "Acer Aspire 5 — Ryzen 5, 8GB, 256GB SSD",
+        price: "R$ 2.799",
+        originalPrice: "R$ 3.299",
+        rating: 4.5,
+        store: "Amazon",
+        match: 96,
+        isBest: true,
+        image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "Lenovo IdeaPad 3 — i5, 8GB, 512GB SSD",
+        price: "R$ 2.899",
+        originalPrice: null,
+        rating: 4.3,
+        store: "Mercado Livre",
+        match: 89,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "Dell Inspiron 15 — i5, 4GB, 256GB SSD",
+        price: "R$ 2.599",
+        originalPrice: null,
+        rating: 4.0,
+        store: "Magazine Luiza",
+        match: 78,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "HP 15s — Ryzen 3, 4GB, 256GB SSD",
+        price: "R$ 2.199",
+        originalPrice: "R$ 2.599",
+        rating: 3.8,
+        store: "Americanas",
+        match: 65,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=112&h=112&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: 2,
@@ -19,10 +55,37 @@ export const demoQuestions: DemoQuestion[] = [
     stores: ["Amazon", "Mercado Livre", "Casas Bahia", "Magazine Luiza"],
     totalProducts: 1203,
     results: [
-      { name: "Samsung Galaxy A54 128GB", price: "R$ 1.899", originalPrice: "R$ 2.199", rating: 4.6, store: "Amazon", match: 94, isBest: true },
-      { name: "Xiaomi Redmi Note 12 Pro 128GB", price: "R$ 1.499", originalPrice: null, rating: 4.4, store: "Mercado Livre", match: 88, isBest: false },
-      { name: "Motorola Edge 30 128GB", price: "R$ 1.699", originalPrice: "R$ 1.999", rating: 4.2, store: "Casas Bahia", match: 82, isBest: false },
-    ]
+      {
+        name: "Samsung Galaxy A54 128GB",
+        price: "R$ 1.899",
+        originalPrice: "R$ 2.199",
+        rating: 4.6,
+        store: "Amazon",
+        match: 94,
+        isBest: true,
+        image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "Xiaomi Redmi Note 12 Pro 128GB",
+        price: "R$ 1.499",
+        originalPrice: null,
+        rating: 4.4,
+        store: "Mercado Livre",
+        match: 88,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "Motorola Edge 30 128GB",
+        price: "R$ 1.699",
+        originalPrice: "R$ 1.999",
+        rating: 4.2,
+        store: "Casas Bahia",
+        match: 82,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=112&h=112&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: 3,
@@ -30,11 +93,38 @@ export const demoQuestions: DemoQuestion[] = [
     stores: ["Amazon", "Mercado Livre", "Magazine Luiza"],
     totalProducts: 534,
     results: [
-      { name: "Sony WH-CH720N — Cancelamento de Ruído", price: "R$ 549", originalPrice: "R$ 699", rating: 4.7, store: "Amazon", match: 97, isBest: true },
-      { name: "JBL Tune 510BT", price: "R$ 299", originalPrice: null, rating: 4.3, store: "Mercado Livre", match: 85, isBest: false },
-      { name: "Samsung Galaxy Buds FE", price: "R$ 399", originalPrice: "R$ 499", rating: 4.1, store: "Magazine Luiza", match: 79, isBest: false },
-    ]
-  }
+      {
+        name: "Sony WH-CH720N — Cancelamento de Ruído",
+        price: "R$ 549",
+        originalPrice: "R$ 699",
+        rating: 4.7,
+        store: "Amazon",
+        match: 97,
+        isBest: true,
+        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "JBL Tune 510BT",
+        price: "R$ 299",
+        originalPrice: null,
+        rating: 4.3,
+        store: "Mercado Livre",
+        match: 85,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=112&h=112&fit=crop&q=80",
+      },
+      {
+        name: "Samsung Galaxy Buds FE",
+        price: "R$ 399",
+        originalPrice: "R$ 499",
+        rating: 4.1,
+        store: "Magazine Luiza",
+        match: 79,
+        isBest: false,
+        image: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=112&h=112&fit=crop&q=80",
+      },
+    ],
+  },
 ];
 
 export const storeColors: Record<string, string> = {
@@ -44,3 +134,6 @@ export const storeColors: Record<string, string> = {
   'Americanas': 'bg-blue-50 text-blue-600',
   'Casas Bahia': 'bg-blue-50 text-blue-700',
 };
+
+/** Amostra do card hero (mesmos produtos da demo de notebook) */
+export const heroPreviewProducts = demoQuestions[0].results.slice(0, 3);

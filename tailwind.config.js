@@ -34,7 +34,33 @@ module.exports = {
         display: ['"Space Grotesk"', 'sans-serif'],
         body: ['"Inter"', 'sans-serif'],
       },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 30s linear infinite',
+      },
     },
   },
   plugins: [require('@tailwindcss/forms')],
+  safelist: [
+    'scroll-reveal',
+    'is-visible',
+    'marquee-track',
+    'marquee-viewport',
+    'animate-marquee',
+    'w-max',
+    'animate-float-orb',
+    'animate-float-delayed',
+    'animate-float-slow',
+    'animate-card-pop',
+    'animate-badge-pop',
+    'animate-pulse',
+    'animate-spin',
+    'animate-scan-pulse',
+    'animate-blink-cursor',
+  ],
 };

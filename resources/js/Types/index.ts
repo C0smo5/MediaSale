@@ -6,6 +6,7 @@ export interface DemoResult {
   store: string;
   match: number;
   isBest: boolean;
+  image: string;
 }
 
 export interface DemoQuestion {

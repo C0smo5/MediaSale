@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
 import { RatingStars } from './Ui/RatingStars';
+import { ProductThumb } from './Ui/ProductThumb';
 import { SearchIcon, SparklesIcon, ZapIcon, CheckIcon, XIcon } from './Icons/Icons';
 import { demoQuestions, storeColors } from '../../Data/demoQuestions';
 import type { DemoQuestion } from '../../Types';
@@ -29,7 +30,10 @@ export const LiveDemo: React.FC = () => {
     const timer = setInterval(() => {
       i++;
       setDisplayedQuery(text.slice(0, i));
-      if (i >= text.length) { clearInterval(timer); setTimeout(() => setPhase('scanning'), 400); }
+      if (i >= text.length) {
+        clearInterval(timer);
+        setTimeout(() => setPhase('scanning'), 400);
+      }
     }, 35);
     return () => clearInterval(timer);
   }, [phase, selectedQuestion]);
@@ -41,7 +45,10 @@ export const LiveDemo: React.FC = () => {
     const timer = setInterval(() => {
       setScannedStores(prev => [...prev, stores[i]]);
       i++;
-      if (i >= stores.length) { clearInterval(timer); setTimeout(() => setPhase('filtering'), 500); }
+      if (i >= stores.length) {
+        clearInterval(timer);
+        setTimeout(() => setPhase('filtering'), 500);
+      }
     }, 350);
     return () => clearInterval(timer);
   }, [phase, selectedQuestion]);
@@ -51,7 +58,11 @@ export const LiveDemo: React.FC = () => {
     let progress = 0;
     const timer = setInterval(() => {
       progress += Math.random() * 18 + 5;
-      if (progress >= 100) { progress = 100; clearInterval(timer); setTimeout(() => setPhase('results'), 300); }
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(timer);
+        setTimeout(() => setPhase('results'), 300);
+      }
       setFilterProgress(Math.min(progress, 100));
     }, 150);
     return () => clearInterval(timer);
@@ -61,6 +72,7 @@ export const LiveDemo: React.FC = () => {
     if (phase !== 'results' || !selectedQuestion) return;
     const count = selectedQuestion.results.length;
     let i = 0;
+    setVisibleResults(0);
     const timer = setInterval(() => {
       i++;
       setVisibleResults(i);
@@ -80,7 +92,7 @@ export const LiveDemo: React.FC = () => {
 
   return (
     <section id="demo" className="py-24 sm:py-32 bg-gradient-to-b from-base/90 via-purple-soft/36 to-surface-alt relative overflow-hidden">
-      <div className="absolute -top-40 right-0 w-80 h-80 bg-brand/[0.06] rounded-full blur-3xl animate-float-slow pointer-events-none" />
+      <div className="absolute -top-40 right-0 w-80 h-80 bg-brand/[0.06] rounded-full blur-2xl animate-float-slow pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimateOnScroll className="text-center mb-12">
@@ -92,17 +104,17 @@ export const LiveDemo: React.FC = () => {
           <p className="text-lg text-muted max-w-xl mx-auto">Clique em uma pergunta e assista a IA buscar, filtrar e encontrar os melhores produtos em tempo real</p>
         </AnimateOnScroll>
 
-        <AnimateOnScroll delay={100}>
+        <AnimateOnScroll delay={80}>
           <div className="bg-panel-soft rounded-3xl border border-brand-default shadow-xl shadow-brand/10 overflow-hidden ring-1 ring-brand/15">
             <div className="p-5 sm:p-6 border-b border-brand-soft/25">
-                <div className="flex items-center gap-3 bg-ink/90 backdrop-blur-sm rounded-2xl px-5 py-4 border border-brand/20">
-                  <SearchIcon className="w-5 h-5 text-brand-light flex-shrink-0" />
-                  {phase === 'idle' ? (
-                    <span className="text-white/40 text-sm sm:text-base">Selecione uma pergunta abaixo...</span>
-                  ) : (
-                    <span className="text-white font-medium text-sm sm:text-base">{displayedQuery}<span className="animate-blink-cursor text-brand-light">|</span></span>
-                  )}
-                </div>
+              <div className="flex items-center gap-3 bg-ink/90 backdrop-blur-sm rounded-2xl px-5 py-4 border border-brand/20">
+                <SearchIcon className="w-5 h-5 text-brand-light flex-shrink-0" />
+                {phase === 'idle' ? (
+                  <span className="text-white/40 text-sm sm:text-base">Selecione uma pergunta abaixo...</span>
+                ) : (
+                  <span className="text-white font-medium text-sm sm:text-base">{displayedQuery}<span className="animate-blink-cursor text-brand-light">|</span></span>
+                )}
+              </div>
             </div>
 
             <div className="px-5 sm:px-6 py-4 border-b border-brand-soft/25 flex flex-wrap gap-2">
@@ -122,6 +134,15 @@ export const LiveDemo: React.FC = () => {
             </div>
 
             <div className="p-5 sm:p-6 min-h-[320px] bg-purple-soft/25">
+              {phase === 'typing' && (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-14 h-14 bg-purple-soft rounded-2xl flex items-center justify-center mb-4 animate-pulse">
+                    <SparklesIcon className="w-7 h-7 text-brand" />
+                  </div>
+                  <p className="text-sm font-medium text-brand">IA processando sua pergunta...</p>
+                </div>
+              )}
+
               {phase === 'idle' && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-16 h-16 bg-purple-soft rounded-2xl flex items-center justify-center mb-4"><SparklesIcon className="w-8 h-8 text-brand" /></div>
@@ -132,12 +153,15 @@ export const LiveDemo: React.FC = () => {
               {phase === 'scanning' && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="relative flex items-center justify-center"><div className="w-2.5 h-2.5 bg-brand rounded-full" /><div className="absolute w-2.5 h-2.5 bg-brand rounded-full animate-ping" /></div>
+                    <div className="relative flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 bg-brand rounded-full" />
+                      <div className="absolute w-2.5 h-2.5 bg-brand rounded-full animate-ping opacity-75" />
+                    </div>
                     <span className="text-sm font-semibold text-brand">Analisando lojas...</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {scannedStores.map((store, i) => (
-                      <div key={i} className="animate-card-pop inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-surface-alt border-brand-default text-xs font-semibold text-ink">
+                      <div key={i} className="animate-card-pop inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-surface-alt border-brand-default text-xs font-semibold text-ink" style={{ animationDelay: `${i * 45}ms` }}>
                         <CheckIcon className="w-3.5 h-3.5 text-emerald-brand" />{store}
                       </div>
                     ))}
@@ -157,7 +181,7 @@ export const LiveDemo: React.FC = () => {
                     <span className="text-sm font-semibold text-emerald-brand">Filtrando {selectedQuestion.totalProducts} produtos...</span>
                   </div>
                   <div className="w-full h-3 bg-surface-alt rounded-full overflow-hidden">
-                    <div className="h-full gradient-brand rounded-full" style={{ width: `${filterProgress}%`, transition: 'width 0.15s ease-out' }} />
+                    <div className="h-full gradient-brand rounded-full transition-all duration-150 ease-out" style={{ width: `${filterProgress}%` }} />
                   </div>
                   <div className="flex items-center gap-4 mt-4 text-xs text-muted">
                     <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Preço comparado</span>
@@ -176,13 +200,16 @@ export const LiveDemo: React.FC = () => {
                   <div className="space-y-3">
                     {selectedQuestion.results.slice(0, visibleResults).map((result, i) => (
                       <div key={i}
-                        className={`animate-card-pop flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${
+                        className={`animate-card-pop flex items-center justify-between p-4 rounded-xl border ${
                           result.isBest ? 'bg-green-soft border-emerald-default ring-1 ring-emerald-brand/15'
                           : 'bg-surface-alt/90 border-brand-soft'}`}
-                        style={{ animationDelay: `${i * 100}ms` }}
+                        style={{ animationDelay: `${i * 45}ms` }}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${result.isBest ? 'bg-emerald-brand/10 text-emerald-brand' : 'bg-purple-soft text-brand'}`}>{result.match}%</div>
+                          <ProductThumb src={result.image} alt={result.name} isBest={result.isBest} />
+                          <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${result.isBest ? 'bg-emerald-brand/10 text-emerald-brand' : 'bg-purple-soft text-brand'}`}>
+                            {result.match}%
+                          </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-semibold text-ink">{result.name}</span>

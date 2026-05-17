@@ -11,7 +11,7 @@
 
     <!-- Ziggy: expõe route() para Link/href nas páginas React -->
     @routes
-    <!-- Scripts do Vite (APENAS UM AQUI) -->
+    @viteReactRefresh
     @vite(['resources/js/app.tsx'])
     @inertiaHead
 </head>

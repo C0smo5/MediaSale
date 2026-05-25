@@ -1,12 +1,8 @@
 module.exports = {
   content: [
-    './resources/**/*.blade.php',
-    './resources/**/*.js',
-    './resources/**/*.jsx',
-    './resources/**/*.tsx',
+    './resources/views/app.blade.php',
+    './resources/js/**/*.{js,jsx,ts,tsx}',
     './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-    './storage/framework/views/*.php',
-    './vendor/laravel/jetstream/**/*.blade.php',
   ],
   theme: {
     extend: {

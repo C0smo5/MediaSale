@@ -23,15 +23,33 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Entrar" />
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div
+                    className="mb-6 rounded-2xl border px-4 py-3 text-sm font-medium"
+                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                >
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit}>
+            <div className="mb-8">
+                <span
+                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                >
+                    Acesso
+                </span>
+                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
+                    Entrar na sua conta
+                </h1>
+                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
+                    Continue para acessar suas analises, monitoramentos e oportunidades de compra.
+                </p>
+            </div>
+
+            <form onSubmit={submit} className="space-y-5">
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
 
@@ -44,13 +62,14 @@ export default function Login({ status, canResetPassword }) {
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
+                        placeholder="voce@empresa.com"
                     />
 
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div>
+                    <InputLabel htmlFor="password" value="Senha" />
 
                     <TextInput
                         id="password"
@@ -60,12 +79,13 @@ export default function Login({ status, canResetPassword }) {
                         className="mt-1 block w-full"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
+                        placeholder="Digite sua senha"
                     />
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4 block">
+                <div className="block">
                     <label className="flex items-center">
                         <Checkbox
                             name="remember"
@@ -74,24 +94,37 @@ export default function Login({ status, canResetPassword }) {
                                 setData('remember', e.target.checked)
                             }
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
+                        <span className="ms-2 text-sm" style={{ color: '#6b6b8a' }}>
+                            Manter conectado
                         </span>
                     </label>
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            Forgot your password?
-                        </Link>
-                    )}
+                <div className="flex flex-col gap-4 pt-2">
+                    <div className="flex items-center justify-between gap-4">
+                        {canResetPassword ? (
+                            <Link
+                                href={route('password.request')}
+                                className="text-sm font-medium underline underline-offset-4"
+                                style={{ color: '#7c3aed' }}
+                            >
+                                Esqueceu sua senha?
+                            </Link>
+                        ) : (
+                            <span />
+                        )}
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
+                        <Link
+                            href={route('register')}
+                            className="text-sm font-medium underline underline-offset-4"
+                            style={{ color: '#6b6b8a' }}
+                        >
+                            Criar conta
+                        </Link>
+                    </div>
+
+                    <PrimaryButton className="w-full" disabled={processing}>
+                        {processing ? 'Entrando...' : 'Entrar'}
                     </PrimaryButton>
                 </div>
             </form>

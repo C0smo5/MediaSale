@@ -20,16 +20,26 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Confirm Password" />
+            <Head title="Confirmar senha" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your
-                password before continuing.
+            <div className="mb-8">
+                <span
+                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                >
+                    Confirmacao
+                </span>
+                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
+                    Confirme sua senha
+                </h1>
+                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
+                    Esta area exige uma confirmacao extra antes de continuar.
+                </p>
             </div>
 
-            <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+            <form onSubmit={submit} className="space-y-5">
+                <div>
+                    <InputLabel htmlFor="password" value="Senha" />
 
                     <TextInput
                         id="password"
@@ -39,14 +49,15 @@ export default function ConfirmPassword() {
                         className="mt-1 block w-full"
                         isFocused={true}
                         onChange={(e) => setData('password', e.target.value)}
+                        placeholder="Digite sua senha atual"
                     />
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Confirm
+                <div className="pt-2">
+                    <PrimaryButton className="w-full" disabled={processing}>
+                        {processing ? 'Confirmando...' : 'Confirmar acesso'}
                     </PrimaryButton>
                 </div>
             </form>

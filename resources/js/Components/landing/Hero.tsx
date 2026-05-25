@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTypingEffect } from '../../Hooks/useTypingEffect';
+import { useTypingEffect } from './hooks/useTypingEffect';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
 import { SearchIcon, SparklesIcon, ArrowRightIcon } from './Icons/Icons';
 

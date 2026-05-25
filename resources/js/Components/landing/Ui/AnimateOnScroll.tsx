@@ -1,5 +1,5 @@
 import React from 'react';
-import { useScrollAnimation } from '@/Hooks/useScrollAnimation';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 interface Props {
   children: React.ReactNode;

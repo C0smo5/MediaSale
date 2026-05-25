@@ -23,9 +23,24 @@ export default function ResetPassword({ token, email }) {
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title="Redefinir senha" />
 
-            <form onSubmit={submit}>
+            <div className="mb-8">
+                <span
+                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                >
+                    Seguranca
+                </span>
+                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
+                    Definir nova senha
+                </h1>
+                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
+                    Escolha uma senha forte para voltar ao painel com total seguranca.
+                </p>
+            </div>
+
+            <form onSubmit={submit} className="space-y-5">
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
 
@@ -37,13 +52,14 @@ export default function ResetPassword({ token, email }) {
                         className="mt-1 block w-full"
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
+                        placeholder="voce@empresa.com"
                     />
 
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div>
+                    <InputLabel htmlFor="password" value="Nova senha" />
 
                     <TextInput
                         id="password"
@@ -54,15 +70,16 @@ export default function ResetPassword({ token, email }) {
                         autoComplete="new-password"
                         isFocused={true}
                         onChange={(e) => setData('password', e.target.value)}
+                        placeholder="Digite sua nova senha"
                     />
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
+                <div>
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value="Confirmar nova senha"
                     />
 
                     <TextInput
@@ -75,6 +92,7 @@ export default function ResetPassword({ token, email }) {
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
+                        placeholder="Repita sua nova senha"
                     />
 
                     <InputError
@@ -83,9 +101,9 @@ export default function ResetPassword({ token, email }) {
                     />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
+                <div className="pt-2">
+                    <PrimaryButton className="w-full" disabled={processing}>
+                        {processing ? 'Redefinindo...' : 'Redefinir senha'}
                     </PrimaryButton>
                 </div>
             </form>

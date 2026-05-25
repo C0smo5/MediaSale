@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
 import { RatingStars } from './Ui/RatingStars';
 import { SearchIcon, SparklesIcon, ZapIcon, CheckIcon, XIcon } from './Icons/Icons';
-import { demoQuestions, storeColors } from '../../Data/demoQuestions';
-import type { DemoQuestion } from '../../Types';
+import { demoQuestions, storeColors } from './data/demoQuestions';
+import type { DemoQuestion } from './types';
 
 export const LiveDemo: React.FC = () => {
   const [selectedQuestion, setSelectedQuestion] = useState<DemoQuestion | null>(null);

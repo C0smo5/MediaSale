@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
 import { Toast } from './Ui/Toast';
 import { CheckIcon, XIcon, ZapIcon, ShieldIcon, RocketIcon } from './Icons/Icons';
-import { pricingPlans } from '../../Data/pricingPlans';
+import { pricingPlans } from './data/pricingPlans';
 
 export const Pricing: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);

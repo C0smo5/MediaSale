@@ -13,35 +13,46 @@ export default function VerifyEmail({ status }) {
 
     return (
         <GuestLayout>
-            <Head title="Email Verification" />
+            <Head title="Verificar e-mail" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                Thanks for signing up! Before getting started, could you verify
-                your email address by clicking on the link we just emailed to
-                you? If you didn't receive the email, we will gladly send you
-                another.
+            <div className="mb-8">
+                <span
+                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                >
+                    Verificacao
+                </span>
+                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
+                    Confirme seu e-mail
+                </h1>
+                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
+                    Antes de continuar, confirme seu endereco de e-mail clicando no link enviado para sua caixa de entrada.
+                </p>
             </div>
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
+                <div
+                    className="mb-6 rounded-2xl border px-4 py-3 text-sm font-medium"
+                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                >
+                    Um novo link de verificacao foi enviado para o e-mail cadastrado.
                 </div>
             )}
 
             <form onSubmit={submit}>
-                <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
-                        Resend Verification Email
+                <div className="flex flex-col gap-4">
+                    <PrimaryButton className="w-full" disabled={processing}>
+                        {processing ? 'Reenviando...' : 'Reenviar e-mail de verificacao'}
                     </PrimaryButton>
 
                     <Link
                         href={route('logout')}
                         method="post"
                         as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="text-sm font-medium underline underline-offset-4"
+                        style={{ color: '#6b6b8a' }}
                     >
-                        Log Out
+                        Sair da conta
                     </Link>
                 </div>
             </form>

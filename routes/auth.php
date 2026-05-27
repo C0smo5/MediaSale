@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\RegisterVerificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,21 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('register/verify', [RegisterVerificationController::class, 'show'])
+        ->name('register.verify');
+
+    Route::post('register/verify/email', [RegisterVerificationController::class, 'verifyEmail'])
+        ->name('register.verify.email');
+
+    Route::post('register/verify/phone', [RegisterVerificationController::class, 'verifyPhone'])
+        ->name('register.verify.phone');
+
+    Route::post('register/verify/resend/email', [RegisterVerificationController::class, 'resendEmail'])
+        ->name('register.verify.resend.email');
+
+    Route::post('register/verify/resend/phone', [RegisterVerificationController::class, 'resendPhone'])
+        ->name('register.verify.resend.phone');
+
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

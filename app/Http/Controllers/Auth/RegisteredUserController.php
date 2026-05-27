@@ -3,19 +3,21 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterStepOneRequest;
 use App\Models\User;
+use App\Services\Verification\VerificationCodeService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(
+        private readonly VerificationCodeService $verificationCodeService,
+    ) {}
+
     /**
      * Display the registration view.
      */
@@ -26,27 +28,23 @@ class RegisteredUserController extends Controller
 
     /**
      * Handle an incoming registration request.
-     *
-     * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterStepOneRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $request->string('name')->value(),
+            'email' => $request->string('email')->value(),
+            'phone' => $request->string('phone')->value(),
+            'cpf' => $request->string('cpf')->value(),
+            'password' => $request->string('password')->value(),
         ]);
 
         event(new Registered($user));
 
+        $this->verificationCodeService->sendAll($user);
+
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('register.verify');
     }
 }

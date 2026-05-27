@@ -81,8 +81,8 @@ export default function Register() {
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                    <div>
+                <div className="auth-field-grid">
+                    <div className="auth-field-group">
                         <InputLabel htmlFor="phone" value="Celular" />
                         <TextInput
                             id="phone"
@@ -99,7 +99,7 @@ export default function Register() {
                         <InputError message={errors.phone} className="mt-2" />
                     </div>
 
-                    <div>
+                    <div className="auth-field-group">
                         <InputLabel htmlFor="cpf" value="CPF" />
                         <TextInput
                             id="cpf"

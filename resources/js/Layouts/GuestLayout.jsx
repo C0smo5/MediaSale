@@ -76,17 +76,15 @@ function BrandPanel() {
                 </p>
             </div>
 
-            <div className="relative z-10 grid gap-3 px-8 pb-8 sm:grid-cols-3 lg:px-10 lg:pb-10 xl:px-12 xl:pb-12">
+            <div className="auth-panel-stats relative z-10 w-full min-w-0 px-8 pb-8 lg:px-10 lg:pb-10 xl:px-12 xl:pb-12">
                 {panelStats.map((item) => (
                     <div
                         key={item.label}
-                        className="rounded-2xl border p-4"
+                        className="auth-stat-card"
                         style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.10)' }}
                     >
-                        <p className="text-2xl font-bold text-white">{item.value}</p>
-                        <p className="mt-1.5 text-xs leading-5" style={{ color: 'rgba(255,255,255,0.70)' }}>
-                            {item.label}
-                        </p>
+                        <p className="auth-stat-card__value">{item.value}</p>
+                        <p className="auth-stat-card__label">{item.label}</p>
                     </div>
                 ))}
             </div>
@@ -106,30 +104,34 @@ export default function GuestLayout({ children }) {
                 style={{ background: 'rgba(168,85,247,0.12)' }}
             />
 
-            <div className="relative lg:grid lg:h-[100dvh] lg:min-h-0 lg:box-border lg:grid-cols-[60fr_35fr] lg:gap-[5fr] lg:p-[2.5%]">
-                {/* Painel de marca — 60fr (~60%), preenche a altura */}
-                <aside className="relative hidden min-h-0 min-w-0 lg:flex lg:h-full">
+            <div className="auth-guest-layout">
+                <aside className="auth-guest-brand hidden lg:flex">
                     <BrandPanel />
                 </aside>
 
-                {/* Formulário — 35fr (~35%), scroll independente */}
-                <div className="flex min-h-[100dvh] min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-y-contain">
-                    <div className="mx-auto flex w-full min-w-0 max-w-lg flex-1 flex-col justify-center px-4 py-5 sm:px-6 sm:py-8 lg:max-w-none lg:px-0 lg:py-4">
-                        <BackToLandingLink className="mb-4 lg:hidden" />
+                <div className="auth-guest-form">
+                    <BackToLandingLink className="mb-4 shrink-0 lg:hidden" />
 
-                        <div
-                            className="w-full min-w-0 rounded-[24px] border p-5 shadow-2xl sm:rounded-[28px] sm:p-7 lg:rounded-[24px] lg:p-7 xl:p-8"
-                            style={{
-                                backgroundColor: 'rgba(255,255,255,0.98)',
-                                borderColor: 'rgba(124,58,237,0.14)',
-                                boxShadow: '0 20px 60px rgba(26,16,64,0.14)',
-                            }}
-                        >
-                            <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
-                                <BrandLogo href={route('home')} nameClassName="text-xl" nameStyle={{ color: '#1a1040' }} />
+                    <div
+                        className="auth-guest-form-card w-full min-w-0 rounded-[24px] border shadow-2xl sm:rounded-[28px] lg:rounded-[28px]"
+                        style={{
+                            backgroundColor: 'rgba(255,255,255,0.98)',
+                            borderColor: 'rgba(124,58,237,0.14)',
+                            boxShadow: '0 20px 60px rgba(26,16,64,0.14)',
+                        }}
+                    >
+                        <div className="auth-guest-form-scroll">
+                            <div className="auth-guest-form-inner p-5 sm:p-7 lg:p-8">
+                                <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
+                                    <BrandLogo
+                                        href={route('home')}
+                                        nameClassName="text-xl"
+                                        nameStyle={{ color: '#1a1040' }}
+                                    />
+                                </div>
+
+                                <div className="min-w-0">{children}</div>
                             </div>
-
-                            <div className="min-w-0">{children}</div>
                         </div>
                     </div>
                 </div>

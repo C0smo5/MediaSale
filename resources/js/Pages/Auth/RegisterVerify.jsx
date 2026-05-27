@@ -1,3 +1,4 @@
+import AuthCard, { AuthCardCell, AuthCardGrid } from '@/Components/Auth/AuthCard';
 import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
 import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
 import InputError from '@/Components/InputError';
@@ -34,27 +35,47 @@ const CheckIcon = () => (
     </svg>
 );
 
-function VerifiedCard({ icon, channel, target }) {
+function CardHeader({ icon, title, target }) {
     return (
-        <div
-            className="flex items-start gap-3 rounded-2xl border p-4 sm:p-5"
-            style={{ borderColor: 'rgba(5,150,105,0.22)', backgroundColor: '#ecfdf5' }}
-        >
+        <div className="flex items-start gap-3">
             <span
                 className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: 'rgba(5,150,105,0.14)', color: '#059669' }}
+                style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
             >
                 {icon}
             </span>
             <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#059669' }}>
-                    <CheckIcon /> {channel} confirmado
+                <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
+                    {title}
                 </p>
-                <p className="mt-0.5 break-all text-xs" style={{ color: '#047857' }}>
-                    {target}
+                <p className="mt-0.5 break-all text-xs" style={{ color: '#6b6b8a' }}>
+                    Enviado para {target}
                 </p>
             </div>
         </div>
+    );
+}
+
+function VerifiedCard({ icon, channel, target }) {
+    return (
+        <AuthCard variant="success" className="justify-center">
+            <div className="flex items-start gap-3">
+                <span
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: 'rgba(5,150,105,0.14)', color: '#059669' }}
+                >
+                    {icon}
+                </span>
+                <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#059669' }}>
+                        <CheckIcon /> {channel} confirmado
+                    </p>
+                    <p className="mt-0.5 break-all text-xs" style={{ color: '#047857' }}>
+                        {target}
+                    </p>
+                </div>
+            </div>
+        </AuthCard>
     );
 }
 
@@ -76,51 +97,39 @@ function VerificationForm({
     resendText,
 }) {
     return (
-        <form
-            onSubmit={onSubmit}
-            className="auth-form rounded-2xl border p-4 sm:p-5"
-            style={{ borderColor: 'rgba(124,58,237,0.16)', backgroundColor: 'rgba(124,58,237,0.03)' }}
-        >
-            <div className="flex items-start gap-3">
-                <span
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                >
-                    {icon}
-                </span>
-                <div className="min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
-                        {title}
-                    </p>
-                    <p className="mt-0.5 break-all text-xs" style={{ color: '#6b6b8a' }}>
-                        Enviado para {target}
-                    </p>
+        <AuthCard as="form" onSubmit={onSubmit} className="auth-form !min-h-0 !space-y-0">
+            <div className="flex flex-1 flex-col gap-5">
+                <CardHeader icon={icon} title={title} target={target} />
+
+                <div className="flex-1">
+                    <InputLabel htmlFor={inputId} value="Codigo de 6 digitos" />
+                    <TextInput
+                        id={inputId}
+                        name="code"
+                        value={form.data.code}
+                        className="mt-1 block w-full text-center text-lg font-semibold tracking-[0.4em]"
+                        onChange={(e) => form.setData('code', e.target.value)}
+                        required
+                        inputMode="numeric"
+                        placeholder="000000"
+                        maxLength={6}
+                    />
+                    <InputError message={form.errors.code} className="mt-2" />
                 </div>
+
+                {debugCode ? (
+                    <p className="break-words text-xs" style={{ color: '#6b6b8a' }}>
+                        {debugLabel}:{' '}
+                        <span className="font-mono font-semibold" style={{ color: '#7c3aed' }}>
+                            {debugCode}
+                        </span>
+                    </p>
+                ) : (
+                    <span className="hidden sm:block" aria-hidden />
+                )}
             </div>
 
-            <div>
-                <InputLabel htmlFor={inputId} value="Codigo de 6 digitos" />
-                <TextInput
-                    id={inputId}
-                    name="code"
-                    value={form.data.code}
-                    className="mt-1 block w-full text-center text-lg font-semibold tracking-[0.4em]"
-                    onChange={(e) => form.setData('code', e.target.value)}
-                    required
-                    inputMode="numeric"
-                    placeholder="000000"
-                    maxLength={6}
-                />
-                <InputError message={form.errors.code} className="mt-2" />
-            </div>
-
-            {debugCode && (
-                <p className="break-words text-xs" style={{ color: '#6b6b8a' }}>
-                    {debugLabel}: <span className="font-mono font-semibold" style={{ color: '#7c3aed' }}>{debugCode}</span>
-                </p>
-            )}
-
-            <div className="flex flex-col gap-3">
+            <div className="mt-5 flex flex-col gap-3">
                 <PrimaryButton className="w-full" disabled={form.processing}>
                     {form.processing ? submittingText : submitText}
                 </PrimaryButton>
@@ -135,7 +144,7 @@ function VerificationForm({
                     {cooldown > 0 ? resendCooldownText(cooldown) : resendText}
                 </button>
             </div>
-        </form>
+        </AuthCard>
     );
 }
 
@@ -255,49 +264,53 @@ export default function RegisterVerify({
                 </div>
             )}
 
-            <div className="space-y-4">
-                {emailVerified ? (
-                    <VerifiedCard icon={<MailIcon />} channel="E-mail" target={maskedEmail} />
-                ) : (
-                    <VerificationForm
-                        icon={<MailIcon />}
-                        title="Confirmar e-mail"
-                        target={maskedEmail}
-                        inputId="email_code"
-                        form={emailForm}
-                        onSubmit={submitEmail}
-                        onResend={resendEmail}
-                        cooldown={emailCooldown}
-                        resending={resendEmailForm.processing}
-                        submittingText="Verificando..."
-                        submitText="Confirmar e-mail"
-                        resendCooldownText={(s) => `Reenviar e-mail em ${s}s`}
-                        resendText="Reenviar codigo por e-mail"
-                    />
-                )}
+            <AuthCardGrid>
+                <AuthCardCell>
+                    {emailVerified ? (
+                        <VerifiedCard icon={<MailIcon />} channel="E-mail" target={maskedEmail} />
+                    ) : (
+                        <VerificationForm
+                            icon={<MailIcon />}
+                            title="Confirmar e-mail"
+                            target={maskedEmail}
+                            inputId="email_code"
+                            form={emailForm}
+                            onSubmit={submitEmail}
+                            onResend={resendEmail}
+                            cooldown={emailCooldown}
+                            resending={resendEmailForm.processing}
+                            submittingText="Verificando..."
+                            submitText="Confirmar e-mail"
+                            resendCooldownText={(s) => `Reenviar e-mail em ${s}s`}
+                            resendText="Reenviar codigo por e-mail"
+                        />
+                    )}
+                </AuthCardCell>
 
-                {phoneVerified ? (
-                    <VerifiedCard icon={<PhoneIcon />} channel="Telefone" target={maskedPhone} />
-                ) : (
-                    <VerificationForm
-                        icon={<PhoneIcon />}
-                        title="Confirmar telefone"
-                        target={maskedPhone}
-                        inputId="phone_code"
-                        form={phoneForm}
-                        onSubmit={submitPhone}
-                        onResend={resendPhone}
-                        cooldown={phoneCooldown}
-                        resending={resendPhoneForm.processing}
-                        debugCode={debugSmsCode}
-                        debugLabel="Codigo SMS (dev)"
-                        submittingText="Verificando..."
-                        submitText="Confirmar telefone"
-                        resendCooldownText={(s) => `Reenviar SMS em ${s}s`}
-                        resendText="Reenviar codigo por SMS"
-                    />
-                )}
-            </div>
+                <AuthCardCell>
+                    {phoneVerified ? (
+                        <VerifiedCard icon={<PhoneIcon />} channel="Telefone" target={maskedPhone} />
+                    ) : (
+                        <VerificationForm
+                            icon={<PhoneIcon />}
+                            title="Confirmar telefone"
+                            target={maskedPhone}
+                            inputId="phone_code"
+                            form={phoneForm}
+                            onSubmit={submitPhone}
+                            onResend={resendPhone}
+                            cooldown={phoneCooldown}
+                            resending={resendPhoneForm.processing}
+                            debugCode={debugSmsCode}
+                            debugLabel="Codigo SMS (dev)"
+                            submittingText="Verificando..."
+                            submitText="Confirmar telefone"
+                            resendCooldownText={(s) => `Reenviar SMS em ${s}s`}
+                            resendText="Reenviar codigo por SMS"
+                        />
+                    )}
+                </AuthCardCell>
+            </AuthCardGrid>
 
             <AuthFooterAction
                 text="Quer trocar de conta?"

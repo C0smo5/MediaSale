@@ -1,18 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { ChatSidebarProvider, useChatSidebar } from '@/contexts/ChatSidebarContext';
 import { Head, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SendIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="22" y1="2" x2="11" y2="13" />
         <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-);
-
-const PlusIcon = () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
 );
 
@@ -22,28 +16,12 @@ const SparkleIcon = ({ size = 16 }) => (
     </svg>
 );
 
-const MenuIcon = () => (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-);
-
 const StoreIcon = () => (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
         <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
 );
-
-const getIsWide = () => {
-    if (typeof window === 'undefined') {
-        return false;
-    }
-
-    return window.innerWidth >= 1024;
-};
 
 const aiResponses = (message) => {
     const normalizedMessage = message.toLowerCase();
@@ -108,14 +86,6 @@ const suggestedPrompts = [
     { label: 'iPhone 15 mais barato', sub: 'Menor preco entre lojas' },
     { label: 'Monitor para trabalho', sub: 'Custo-beneficio e giro' },
     { label: 'SSD com melhor preco', sub: 'Armazenamento e margem' },
-];
-
-const chatHistory = [
-    { id: 1, title: 'Notebook para escritorio', date: 'Hoje' },
-    { id: 2, title: 'iPhone 15 vs Samsung S24', date: 'Ontem' },
-    { id: 3, title: 'Monitor gamer 144Hz', date: '19/05' },
-    { id: 4, title: 'SSD Kingston 480GB', date: '15/05' },
-    { id: 5, title: 'Teclado mecanico barato', date: '12/05' },
 ];
 
 function ProductCard({ product }) {
@@ -199,35 +169,34 @@ function TypingDots() {
 }
 
 export default function Chat() {
+    return (
+        <ChatSidebarProvider>
+            <ChatPage />
+        </ChatSidebarProvider>
+    );
+}
+
+function ChatPage() {
     const { auth } = usePage().props;
     const user = auth.user;
+    const chatSidebar = useChatSidebar();
     const firstName = user.name.split(' ')[0];
     const initials = user.name.split(' ').map((name) => name[0]).slice(0, 2).join('').toUpperCase();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [isWide, setIsWide] = useState(getIsWide);
-    const [sidebarOpen, setSidebarOpen] = useState(getIsWide);
-    const [activeChat, setActiveChat] = useState(null);
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
 
-    useEffect(() => {
-        const handleResize = () => {
-            const nextIsWide = getIsWide();
-            setIsWide(nextIsWide);
-            setSidebarOpen((current) => (nextIsWide ? true : current && !nextIsWide));
-
-            if (!nextIsWide) {
-                setSidebarOpen(false);
-            }
-        };
-
-        handleResize();
-        window.addEventListener('resize', handleResize);
-
-        return () => window.removeEventListener('resize', handleResize);
+    const clearConversation = useCallback(() => {
+        setMessages([]);
+        setInput('');
+        setIsTyping(false);
     }, []);
+
+    useEffect(() => {
+        chatSidebar.registerStartNewChat(clearConversation);
+    }, [chatSidebar, clearConversation]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -269,14 +238,6 @@ export default function Chat() {
         }, 1200);
     };
 
-    const startNewChat = () => {
-        setMessages([]);
-        setActiveChat(null);
-        if (!isWide) {
-            setSidebarOpen(false);
-        }
-    };
-
     const handleKeyDown = (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -290,171 +251,18 @@ export default function Chat() {
         <AuthenticatedLayout>
             <Head title="Chat IA" />
 
-            <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f8f7ff', overflow: 'hidden', position: 'relative' }}>
-                {!isWide && sidebarOpen && (
-                    <div
-                        className="fixed inset-0"
-                        style={{ backgroundColor: 'rgba(26,16,64,0.35)', backdropFilter: 'blur(2px)', zIndex: 60 }}
-                        onClick={() => setSidebarOpen(false)}
-                    />
-                )}
-
-                <aside
+            <div
+                className="flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col overflow-hidden md:h-[100dvh]"
+                style={{ backgroundColor: '#f8f7ff' }}
+            >
+                <div
+                    className="flex min-h-[52px] flex-shrink-0 flex-wrap items-center gap-3 border-b px-4 py-2 sm:px-4"
                     style={{
-                        width: sidebarOpen ? '260px' : '0px',
-                        minWidth: sidebarOpen ? '260px' : '0px',
-                        transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1), min-width 0.25s cubic-bezier(0.4,0,0.2,1)',
-                        overflow: 'hidden',
-                        backgroundColor: '#3d2080',
-                        borderRight: '1px solid rgba(168,85,247,0.20)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        flexShrink: 0,
-                        ...(isWide
-                            ? { position: 'relative', zIndex: 1 }
-                            : { position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 70 }),
+                        backgroundColor: '#ffffff',
+                        borderColor: 'rgba(124,58,237,0.10)',
                     }}
                 >
-                    <div style={{ padding: '16px 12px 12px', borderBottom: '1px solid rgba(168,85,247,0.15)' }}>
-                        <button
-                            type="button"
-                            onClick={startNewChat}
-                            style={{
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                padding: '9px 16px',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(168,85,247,0.30)',
-                                backgroundColor: 'transparent',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                color: '#c4b5fd',
-                                transition: 'all 0.15s ease',
-                            }}
-                            onMouseEnter={(event) => {
-                                event.currentTarget.style.backgroundColor = 'rgba(168,85,247,0.15)';
-                                event.currentTarget.style.borderColor = 'rgba(168,85,247,0.50)';
-                            }}
-                            onMouseLeave={(event) => {
-                                event.currentTarget.style.backgroundColor = 'transparent';
-                                event.currentTarget.style.borderColor = 'rgba(168,85,247,0.30)';
-                            }}
-                        >
-                            <PlusIcon /> Nova conversa
-                        </button>
-                    </div>
-
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
-                        <p
-                            style={{
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                letterSpacing: '0.08em',
-                                textTransform: 'uppercase',
-                                color: 'rgba(255,255,255,0.40)',
-                                padding: '4px 8px 8px',
-                            }}
-                        >
-                            Recentes
-                        </p>
-                        {chatHistory.map((chat) => (
-                            <button
-                                key={chat.id}
-                                type="button"
-                                onClick={() => {
-                                    setActiveChat(chat.id);
-                                    if (!isWide) {
-                                        setSidebarOpen(false);
-                                    }
-                                }}
-                                style={{
-                                    width: '100%',
-                                    textAlign: 'left',
-                                    padding: '8px 10px',
-                                    borderRadius: '9px',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    backgroundColor: activeChat === chat.id ? 'rgba(168,85,247,0.20)' : 'transparent',
-                                    transition: 'background 0.15s ease',
-                                    marginBottom: '1px',
-                                    display: 'block',
-                                }}
-                                onMouseEnter={(event) => {
-                                    if (activeChat !== chat.id) {
-                                        event.currentTarget.style.backgroundColor = 'rgba(168,85,247,0.10)';
-                                    }
-                                }}
-                                onMouseLeave={(event) => {
-                                    if (activeChat !== chat.id) {
-                                        event.currentTarget.style.backgroundColor = 'transparent';
-                                    }
-                                }}
-                            >
-                                <p
-                                    style={{
-                                        fontSize: '13px',
-                                        fontWeight: 500,
-                                        margin: 0,
-                                        color: activeChat === chat.id ? '#c4b5fd' : 'rgba(255,255,255,0.80)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                    }}
-                                >
-                                    {chat.title}
-                                </p>
-                                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.40)', margin: '2px 0 0' }}>
-                                    {chat.date}
-                                </p>
-                            </button>
-                        ))}
-                    </div>
-                </aside>
-
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '0 16px',
-                            height: '56px',
-                            flexShrink: 0,
-                            backgroundColor: '#ffffff',
-                            borderBottom: '1px solid rgba(124,58,237,0.10)',
-                        }}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setSidebarOpen((open) => !open)}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: '#6b6b8a',
-                                padding: '7px',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={(event) => {
-                                event.currentTarget.style.backgroundColor = '#f0eeff';
-                                event.currentTarget.style.color = '#7c3aed';
-                            }}
-                            onMouseLeave={(event) => {
-                                event.currentTarget.style.backgroundColor = 'transparent';
-                                event.currentTarget.style.color = '#6b6b8a';
-                            }}
-                        >
-                            <MenuIcon />
-                        </button>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
                             <div
                                 style={{
                                     width: '32px',
@@ -470,11 +278,11 @@ export default function Chat() {
                             >
                                 <SparkleIcon size={14} />
                             </div>
-                            <div>
-                                <p style={{ fontSize: '14px', fontWeight: 700, color: '#1a1040', margin: 0, lineHeight: 1.2 }}>
+                            <div className="min-w-0">
+                                <p className="m-0 truncate text-sm font-bold leading-tight sm:text-[14px]" style={{ color: '#1a1040' }}>
                                     Orin IA
                                 </p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+                                <div className="mt-0.5 flex items-center gap-1.5">
                                     <span
                                         style={{
                                             width: '6px',
@@ -486,34 +294,27 @@ export default function Chat() {
                                         }}
                                     />
                                     <style>{`@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }`}</style>
-                                    <span style={{ fontSize: '11px', color: '#059669' }}>
+                                    <span className="truncate text-[11px]" style={{ color: '#059669' }}>
                                         Analisando 50+ lojas
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {isWide && (
-                            <div style={{ marginLeft: 'auto' }}>
-                                <span
-                                    style={{
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        color: '#7c3aed',
-                                        backgroundColor: '#ede9fe',
-                                        padding: '4px 10px',
-                                        borderRadius: '20px',
-                                        border: '1px solid rgba(124,58,237,0.15)',
-                                    }}
-                                >
-                                    95 analises restantes
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                        <span
+                            className="hidden flex-shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex"
+                            style={{
+                                color: '#7c3aed',
+                                backgroundColor: '#ede9fe',
+                                borderColor: 'rgba(124,58,237,0.15)',
+                            }}
+                        >
+                            95 analises restantes
+                        </span>
+                </div>
 
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 0' }}>
-                        <div style={{ maxWidth: '720px', margin: '0 auto', padding: '0 24px' }}>
+                <div className="min-h-0 flex-1 overflow-y-auto py-6 sm:py-8">
+                        <div className="mx-auto w-full min-w-0 max-w-[720px] px-4 sm:px-6">
                             {isEmpty && (
                                 <div
                                     style={{
@@ -550,14 +351,7 @@ export default function Chat() {
                                         </p>
                                     </div>
 
-                                    <div
-                                        style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: isWide ? '1fr 1fr' : '1fr',
-                                            gap: '10px',
-                                            width: '100%',
-                                        }}
-                                    >
+                                    <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                                         {suggestedPrompts.map((prompt) => (
                                             <button
                                                 key={prompt.label}
@@ -718,8 +512,8 @@ export default function Chat() {
                         </div>
                     </div>
 
-                    <div style={{ padding: '12px 24px 16px', backgroundColor: '#ffffff', borderTop: '1px solid rgba(124,58,237,0.10)', flexShrink: 0 }}>
-                        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+                <div className="flex-shrink-0 border-t px-4 py-3 sm:px-6" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.10)' }}>
+                        <div className="mx-auto w-full min-w-0 max-w-[720px]">
                             <div
                                 style={{
                                     display: 'flex',
@@ -795,7 +589,6 @@ export default function Chat() {
                                 Enter para enviar · Shift+Enter para nova linha
                             </p>
                         </div>
-                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>

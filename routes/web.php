@@ -20,6 +20,10 @@ Route::get('/chat', function () {
     return Inertia::render('Chat');
 })->middleware(['auth', 'registration.complete'])->name('chat');
 
+Route::get('/settings', function () {
+    return Inertia::render('Settings/Index');
+})->middleware(['auth', 'registration.complete'])->name('settings');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

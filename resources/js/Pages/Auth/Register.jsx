@@ -1,9 +1,20 @@
+import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
+import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
+
+const SignupIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <line x1="19" y1="8" x2="19" y2="14" />
+        <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+);
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -27,25 +38,16 @@ export default function Register() {
         <GuestLayout>
             <Head title="Criar conta" />
 
-            <div className="mb-8">
-                <span
-                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                >
-                    Cadastro
-                </span>
-                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
-                    Criar sua conta
-                </h1>
-                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
-                    Informe seus dados para iniciar. Na proxima etapa voce confirma e-mail e telefone com codigos de verificacao.
-                </p>
-            </div>
+            <AuthPageHeader
+                icon={<SignupIcon />}
+                badge="Cadastro"
+                title="Criar sua conta"
+                description="Informe seus dados para iniciar. Na proxima etapa voce confirma e-mail e telefone com codigos de verificacao."
+            />
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="auth-form">
                 <div>
                     <InputLabel htmlFor="name" value="Nome completo" />
-
                     <TextInput
                         id="name"
                         name="name"
@@ -57,13 +59,11 @@ export default function Register() {
                         required
                         placeholder="Seu nome"
                     />
-
                     <InputError message={errors.name} className="mt-2" />
                 </div>
 
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
-
                     <TextInput
                         id="email"
                         type="email"
@@ -75,52 +75,48 @@ export default function Register() {
                         required
                         placeholder="voce@gmail.com"
                     />
-
-                    <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>
+                    <p className="mt-1.5 break-words text-xs" style={{ color: '#6b6b8a' }}>
                         Use um e-mail de provedor conhecido (Gmail, Outlook, Yahoo, iCloud, etc.).
                     </p>
-
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div>
-                    <InputLabel htmlFor="phone" value="Celular" />
+                <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <InputLabel htmlFor="phone" value="Celular" />
+                        <TextInput
+                            id="phone"
+                            type="tel"
+                            name="phone"
+                            value={data.phone}
+                            className="mt-1 block w-full"
+                            autoComplete="tel"
+                            onChange={(e) => setData('phone', e.target.value)}
+                            required
+                            placeholder="(11) 98765-4321"
+                            inputMode="tel"
+                        />
+                        <InputError message={errors.phone} className="mt-2" />
+                    </div>
 
-                    <TextInput
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        value={data.phone}
-                        className="mt-1 block w-full"
-                        autoComplete="tel"
-                        onChange={(e) => setData('phone', e.target.value)}
-                        required
-                        placeholder="11987654321"
-                    />
-
-                    <InputError message={errors.phone} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="cpf" value="CPF" />
-
-                    <TextInput
-                        id="cpf"
-                        name="cpf"
-                        value={data.cpf}
-                        className="mt-1 block w-full"
-                        onChange={(e) => setData('cpf', e.target.value)}
-                        required
-                        placeholder="00000000000"
-                        inputMode="numeric"
-                    />
-
-                    <InputError message={errors.cpf} className="mt-2" />
+                    <div>
+                        <InputLabel htmlFor="cpf" value="CPF" />
+                        <TextInput
+                            id="cpf"
+                            name="cpf"
+                            value={data.cpf}
+                            className="mt-1 block w-full"
+                            onChange={(e) => setData('cpf', e.target.value)}
+                            required
+                            placeholder="000.000.000-00"
+                            inputMode="numeric"
+                        />
+                        <InputError message={errors.cpf} className="mt-2" />
+                    </div>
                 </div>
 
                 <div>
                     <InputLabel htmlFor="password" value="Senha" />
-
                     <TextInput
                         id="password"
                         type="password"
@@ -132,16 +128,11 @@ export default function Register() {
                         required
                         placeholder="Crie uma senha forte"
                     />
-
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
                 <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirmar senha"
-                    />
-
+                    <InputLabel htmlFor="password_confirmation" value="Confirmar senha" />
                     <TextInput
                         id="password_confirmation"
                         type="password"
@@ -149,33 +140,23 @@ export default function Register() {
                         value={data.password_confirmation}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
+                        onChange={(e) => setData('password_confirmation', e.target.value)}
                         required
                         placeholder="Repita sua senha"
                     />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
-                <div className="flex flex-col gap-4 pt-2">
-                    <Link
-                        href={route('login')}
-                        className="text-sm font-medium underline underline-offset-4"
-                        style={{ color: '#6b6b8a' }}
-                    >
-                        Ja possui conta? Entrar
-                    </Link>
-
-                    <PrimaryButton className="w-full" disabled={processing}>
-                        {processing ? 'Continuando...' : 'Continuar para verificacao'}
-                    </PrimaryButton>
-                </div>
+                <PrimaryButton className="w-full" disabled={processing}>
+                    {processing ? 'Continuando...' : 'Continuar para verificacao'}
+                </PrimaryButton>
             </form>
+
+            <AuthFooterAction
+                text="Ja possui uma conta?"
+                linkLabel="Entrar agora"
+                href={route('login')}
+            />
         </GuestLayout>
     );
 }

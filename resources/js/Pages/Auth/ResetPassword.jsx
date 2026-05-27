@@ -1,9 +1,18 @@
+import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
+import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
+
+const ShieldIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="M9 12l2 2 4-4" />
+    </svg>
+);
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -25,25 +34,16 @@ export default function ResetPassword({ token, email }) {
         <GuestLayout>
             <Head title="Redefinir senha" />
 
-            <div className="mb-8">
-                <span
-                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                >
-                    Seguranca
-                </span>
-                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
-                    Definir nova senha
-                </h1>
-                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
-                    Escolha uma senha forte para voltar ao painel com total seguranca.
-                </p>
-            </div>
+            <AuthPageHeader
+                icon={<ShieldIcon />}
+                badge="Seguranca"
+                title="Definir nova senha"
+                description="Escolha uma senha forte para voltar ao painel com total seguranca."
+            />
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="auth-form">
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
-
                     <TextInput
                         id="email"
                         type="email"
@@ -54,13 +54,11 @@ export default function ResetPassword({ token, email }) {
                         onChange={(e) => setData('email', e.target.value)}
                         placeholder="voce@empresa.com"
                     />
-
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 <div>
                     <InputLabel htmlFor="password" value="Nova senha" />
-
                     <TextInput
                         id="password"
                         type="password"
@@ -72,16 +70,11 @@ export default function ResetPassword({ token, email }) {
                         onChange={(e) => setData('password', e.target.value)}
                         placeholder="Digite sua nova senha"
                     />
-
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
                 <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirmar nova senha"
-                    />
-
+                    <InputLabel htmlFor="password_confirmation" value="Confirmar nova senha" />
                     <TextInput
                         type="password"
                         id="password_confirmation"
@@ -89,24 +82,22 @@ export default function ResetPassword({ token, email }) {
                         value={data.password_confirmation}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
+                        onChange={(e) => setData('password_confirmation', e.target.value)}
                         placeholder="Repita sua nova senha"
                     />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
-                <div className="pt-2">
-                    <PrimaryButton className="w-full" disabled={processing}>
-                        {processing ? 'Redefinindo...' : 'Redefinir senha'}
-                    </PrimaryButton>
-                </div>
+                <PrimaryButton className="w-full" disabled={processing}>
+                    {processing ? 'Redefinindo...' : 'Redefinir senha'}
+                </PrimaryButton>
             </form>
+
+            <AuthFooterAction
+                text="Lembrou da senha?"
+                linkLabel="Voltar para o login"
+                href={route('login')}
+            />
         </GuestLayout>
     );
 }

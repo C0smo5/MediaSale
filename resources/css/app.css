@@ -61,7 +61,31 @@
 ::-webkit-scrollbar-thumb { background: #d4d0f7; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 
-body { overflow-x: hidden; }
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+@layer components {
+  .auth-form {
+    @apply min-w-0 space-y-5;
+  }
+
+  .auth-alert {
+    @apply mb-5 break-words rounded-2xl border px-4 py-3 text-sm sm:mb-6;
+  }
+
+  .auth-card-section {
+    @apply rounded-2xl border p-4 sm:p-5;
+    border-color: rgba(124, 58, 237, 0.14);
+    background-color: rgba(124, 58, 237, 0.03);
+  }
+}
 
 /* Fundo geral: predominância lilás / lavanda, pouco branco “plano” */
 .bg-page-balanced {

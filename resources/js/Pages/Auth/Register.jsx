@@ -9,6 +9,8 @@ export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
+        phone: '',
+        cpf: '',
         password: '',
         password_confirmation: '',
     });
@@ -36,7 +38,7 @@ export default function Register() {
                     Criar sua conta
                 </h1>
                 <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
-                    Comece a usar o Orin para comparar precos, identificar margens e acompanhar oportunidades.
+                    Informe seus dados para iniciar. Na proxima etapa voce confirma e-mail e telefone com codigos de verificacao.
                 </p>
             </div>
 
@@ -71,10 +73,49 @@ export default function Register() {
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
-                        placeholder="voce@empresa.com"
+                        placeholder="voce@gmail.com"
                     />
 
+                    <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>
+                        Use um e-mail de provedor conhecido (Gmail, Outlook, Yahoo, iCloud, etc.).
+                    </p>
+
                     <InputError message={errors.email} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="phone" value="Celular" />
+
+                    <TextInput
+                        id="phone"
+                        type="tel"
+                        name="phone"
+                        value={data.phone}
+                        className="mt-1 block w-full"
+                        autoComplete="tel"
+                        onChange={(e) => setData('phone', e.target.value)}
+                        required
+                        placeholder="11987654321"
+                    />
+
+                    <InputError message={errors.phone} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="cpf" value="CPF" />
+
+                    <TextInput
+                        id="cpf"
+                        name="cpf"
+                        value={data.cpf}
+                        className="mt-1 block w-full"
+                        onChange={(e) => setData('cpf', e.target.value)}
+                        required
+                        placeholder="00000000000"
+                        inputMode="numeric"
+                    />
+
+                    <InputError message={errors.cpf} className="mt-2" />
                 </div>
 
                 <div>
@@ -131,7 +172,7 @@ export default function Register() {
                     </Link>
 
                     <PrimaryButton className="w-full" disabled={processing}>
-                        {processing ? 'Criando conta...' : 'Criar conta'}
+                        {processing ? 'Continuando...' : 'Continuar para verificacao'}
                     </PrimaryButton>
                 </div>
             </form>

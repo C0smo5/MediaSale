@@ -14,11 +14,11 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'registration.complete'])->name('dashboard');
 
 Route::get('/chat', function () {
     return Inertia::render('Chat');
-})->middleware(['auth', 'verified'])->name('chat');
+})->middleware(['auth', 'registration.complete'])->name('chat');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

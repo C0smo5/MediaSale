@@ -1,9 +1,17 @@
+import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
+import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
+
+const KeyIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+    </svg>
+);
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -20,31 +28,23 @@ export default function ForgotPassword({ status }) {
         <GuestLayout>
             <Head title="Recuperar senha" />
 
-            <div className="mb-8">
-                <span
-                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                >
-                    Recuperacao
-                </span>
-                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
-                    Esqueceu sua senha?
-                </h1>
-                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
-                    Informe seu e-mail e enviaremos um link para redefinir seu acesso com seguranca.
-                </p>
-            </div>
+            <AuthPageHeader
+                icon={<KeyIcon />}
+                badge="Recuperacao"
+                title="Esqueceu sua senha?"
+                description="Informe seu e-mail e enviaremos um link para redefinir seu acesso com seguranca."
+            />
 
             {status && (
                 <div
-                    className="mb-6 rounded-2xl border px-4 py-3 text-sm font-medium"
+                    className="auth-alert font-medium"
                     style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
                 >
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="auth-form">
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
                     <TextInput
@@ -57,16 +57,19 @@ export default function ForgotPassword({ status }) {
                         onChange={(e) => setData('email', e.target.value)}
                         placeholder="voce@empresa.com"
                     />
+                    <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <InputError message={errors.email} className="mt-2" />
-
-                <div className="pt-2">
-                    <PrimaryButton className="w-full" disabled={processing}>
-                        {processing ? 'Enviando link...' : 'Enviar link de redefinicao'}
-                    </PrimaryButton>
-                </div>
+                <PrimaryButton className="w-full" disabled={processing}>
+                    {processing ? 'Enviando link...' : 'Enviar link de redefinicao'}
+                </PrimaryButton>
             </form>
+
+            <AuthFooterAction
+                text="Lembrou da senha?"
+                linkLabel="Voltar para o login"
+                href={route('login')}
+            />
         </GuestLayout>
     );
 }

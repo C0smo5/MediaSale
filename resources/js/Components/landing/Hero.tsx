@@ -10,14 +10,14 @@ export const Hero: React.FC = () => {
   );
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 pb-20 sm:pb-24 overflow-hidden bg-gradient-to-b from-purple-soft/55 via-base to-purple-soft/48">
-      <div className="absolute top-20 -left-40 w-[500px] h-[500px] bg-brand/[0.07] rounded-full blur-3xl animate-float-orb pointer-events-none" />
-      <div className="absolute bottom-0 -right-32 w-[400px] h-[400px] bg-brand-light/[0.09] rounded-full blur-3xl animate-float-delayed pointer-events-none" />
-      <div className="absolute top-1/3 left-1/2 w-[300px] h-[300px] bg-emerald-brand/[0.06] rounded-full blur-3xl animate-float-slow pointer-events-none" />
+    <section className="relative flex min-h-screen items-center overflow-x-hidden bg-gradient-to-b from-purple-soft/55 via-base to-purple-soft/48 pt-20 pb-20 sm:pb-24">
+      <div className="pointer-events-none absolute top-20 -left-40 h-[min(500px,90vw)] w-[min(500px,90vw)] rounded-full bg-brand/[0.07] blur-3xl animate-float-orb" />
+      <div className="pointer-events-none absolute bottom-0 -right-32 h-[min(400px,80vw)] w-[min(400px,80vw)] rounded-full bg-brand-light/[0.09] blur-3xl animate-float-delayed" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 h-[min(300px,70vw)] w-[min(300px,70vw)] -translate-x-1/2 rounded-full bg-emerald-brand/[0.06] blur-3xl animate-float-slow" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="max-w-xl">
+      <div className="relative z-10 mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid min-w-0 grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+          <div className="min-w-0 lg:max-w-xl">
             <AnimateOnScroll>
               <div className="inline-flex items-center gap-2 bg-purple-soft border border-brand-default rounded-full px-4 py-1.5 mb-6">
                 <SparklesIcon className="w-4 h-4 text-brand" />
@@ -52,22 +52,24 @@ export const Hero: React.FC = () => {
             </AnimateOnScroll>
 
             <AnimateOnScroll delay={400}>
-              <div className="flex items-center gap-6 mt-10 pt-8">
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4 pt-8">
                 <div className="text-center"><div className="text-xl font-bold text-ink">2M+</div><div className="text-xs text-muted">produtos analisados</div></div>
-                <div className="w-px h-8 bg-brand/15" />
+                <div className="hidden h-8 w-px bg-brand/15 sm:block" />
                 <div className="text-center"><div className="text-xl font-bold text-ink">50+</div><div className="text-xs text-muted">lojas comparadas</div></div>
-                <div className="w-px h-8 bg-brand/15" />
+                <div className="hidden h-8 w-px bg-brand/15 sm:block" />
                 <div className="text-center"><div className="text-xl font-bold text-ink">97%</div><div className="text-xs text-muted">satisfação</div></div>
               </div>
             </AnimateOnScroll>
           </div>
 
-          <AnimateOnScroll delay={200} className="lg:max-w-lg lg:ml-auto">
-            <div className="bg-panel-soft rounded-3xl border border-brand-default shadow-xl shadow-brand/[0.1] p-6 sm:p-8 relative ring-1 ring-brand/20">
-                <div className="flex items-center gap-3 bg-ink/90 backdrop-blur-sm rounded-2xl px-5 py-4 border border-brand/20 mb-6">
-                  <SearchIcon className="w-5 h-5 text-brand-light flex-shrink-0" />
-                  <span className="text-white font-medium text-sm sm:text-base truncate">{typedText}</span>
-                  <span className="animate-blink-cursor text-brand-light font-light">|</span>
+          <AnimateOnScroll delay={200} className="min-w-0 w-full max-w-full lg:max-w-none">
+            <div className="relative mx-auto w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-brand-default bg-panel-soft p-4 shadow-xl shadow-brand/[0.1] ring-1 ring-brand/20 sm:p-6 lg:mx-0 lg:p-8">
+                <div className="mb-6 flex flex-wrap items-start gap-2 rounded-2xl border border-brand/20 bg-ink/90 px-4 py-3 backdrop-blur-sm sm:items-center sm:gap-3 sm:px-5 sm:py-4">
+                  <SearchIcon className="h-5 w-5 flex-shrink-0 text-brand-light" />
+                  <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug text-white sm:text-base">
+                    {typedText}
+                  </span>
+                  <span className="animate-blink-cursor flex-shrink-0 font-light text-brand-light">|</span>
                 </div>
               <div className="flex items-center gap-2 mb-5">
                 <div className="relative flex items-center justify-center">
@@ -82,19 +84,22 @@ export const Hero: React.FC = () => {
                   { name: 'Lenovo IdeaPad 3 i5', price: 'R$ 2.899', store: 'Mercado Livre', match: 89, best: false },
                   { name: 'Dell Inspiron 15 i5', price: 'R$ 2.599', store: 'Magazine Luiza', match: 78, best: false },
                 ].map((item, i) => (
-                  <div key={i} className={`flex items-center justify-between p-3.5 rounded-xl border transition-all duration-200 ${item.best ? 'bg-green-soft border-emerald-default' : 'bg-surface-alt/80 border-brand-soft'}`}>
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${item.best ? 'bg-emerald-brand/10 text-emerald-brand' : 'bg-purple-soft text-brand'}`}>{item.match}%</div>
+                  <div
+                    key={i}
+                    className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border p-3 sm:p-3.5 transition-all duration-200 ${item.best ? 'bg-green-soft border-emerald-default' : 'bg-surface-alt/80 border-brand-soft'}`}
+                  >
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${item.best ? 'bg-emerald-brand/10 text-emerald-brand' : 'bg-purple-soft text-brand'}`}>{item.match}%</div>
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold text-ink truncate">{item.name}</div>
-                        <div className="text-xs text-muted">{item.store}</div>
+                        <div className="truncate text-sm font-semibold text-ink">{item.name}</div>
+                        <div className="truncate text-xs text-muted">{item.store}</div>
                       </div>
                     </div>
-                    <div className="text-sm font-bold text-ink flex-shrink-0 ml-3">{item.price}</div>
+                    <div className="flex-shrink-0 text-xs font-bold text-ink sm:text-sm">{item.price}</div>
                   </div>
                 ))}
               </div>
-              <div className="absolute -top-20 -right-20 w-40 h-40 bg-brand/[0.06] rounded-full blur-3xl pointer-events-none" />
+              <div className="pointer-events-none absolute -top-20 -right-20 hidden h-40 w-40 rounded-full bg-brand/[0.06] blur-3xl sm:block" />
             </div>
           </AnimateOnScroll>
         </div>

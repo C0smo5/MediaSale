@@ -1,6 +1,15 @@
+import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
+import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
+
+const MailCheckIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+);
 
 export default function VerifyEmail({ status }) {
     const { post, processing } = useForm({});
@@ -15,24 +24,16 @@ export default function VerifyEmail({ status }) {
         <GuestLayout>
             <Head title="Verificar e-mail" />
 
-            <div className="mb-8">
-                <span
-                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                >
-                    Verificacao
-                </span>
-                <h1 className="mt-4 text-3xl font-bold" style={{ color: '#1a1040' }}>
-                    Confirme seu e-mail
-                </h1>
-                <p className="mt-2 text-sm leading-6" style={{ color: '#6b6b8a' }}>
-                    Antes de continuar, confirme seu endereco de e-mail clicando no link enviado para sua caixa de entrada.
-                </p>
-            </div>
+            <AuthPageHeader
+                icon={<MailCheckIcon />}
+                badge="Verificacao"
+                title="Confirme seu e-mail"
+                description="Antes de continuar, confirme seu endereco de e-mail clicando no link enviado para sua caixa de entrada."
+            />
 
             {status === 'verification-link-sent' && (
                 <div
-                    className="mb-6 rounded-2xl border px-4 py-3 text-sm font-medium"
+                    className="auth-alert font-medium"
                     style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
                 >
                     Um novo link de verificacao foi enviado para o e-mail cadastrado.
@@ -40,22 +41,17 @@ export default function VerifyEmail({ status }) {
             )}
 
             <form onSubmit={submit}>
-                <div className="flex flex-col gap-4">
-                    <PrimaryButton className="w-full" disabled={processing}>
-                        {processing ? 'Reenviando...' : 'Reenviar e-mail de verificacao'}
-                    </PrimaryButton>
-
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="text-sm font-medium underline underline-offset-4"
-                        style={{ color: '#6b6b8a' }}
-                    >
-                        Sair da conta
-                    </Link>
-                </div>
+                <PrimaryButton className="w-full" disabled={processing}>
+                    {processing ? 'Reenviando...' : 'Reenviar e-mail de verificacao'}
+                </PrimaryButton>
             </form>
+
+            <AuthFooterAction
+                linkLabel="Sair da conta"
+                href={route('logout')}
+                method="post"
+                as="button"
+            />
         </GuestLayout>
     );
 }

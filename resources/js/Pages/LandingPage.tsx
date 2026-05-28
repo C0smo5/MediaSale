@@ -11,7 +11,7 @@ import { Footer } from '@/Components/landing/Footer';
 
 export default function LandingPage() {
   return (
-    <div className="bg-page-balanced font-body text-ink antialiased min-h-screen">
+    <div className="min-h-screen overflow-x-hidden bg-page-balanced font-body text-ink antialiased">
       <Navbar />
       <Hero />
       <StoresMarquee />

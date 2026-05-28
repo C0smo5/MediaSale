@@ -16,11 +16,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'redirect' => $request->query('redirect'),
         ]);
     }
 
@@ -32,6 +33,16 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        $redirect = $request->input('redirect');
+
+        if (is_string($redirect) && $this->isValidInternalRedirect($redirect)) {
+            if (str_contains($redirect, '/plans')) {
+                return redirect()->route('profile.edit', ['section' => 'plans']);
+            }
+
+            return redirect($redirect);
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -48,5 +59,16 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function isValidInternalRedirect(string $url): bool
+    {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return true;
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+
+        return $appUrl !== '' && str_starts_with($url, $appUrl);
     }
 }

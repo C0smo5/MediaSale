@@ -22,6 +22,14 @@ class RegisterVerificationController extends Controller
         $user = $request->user();
 
         if ($user->isFullyVerified()) {
+            if (! $user->hasSelectedPlan()) {
+                return redirect()->route('register.plan');
+            }
+
+            if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
+                return redirect()->route('register.payment');
+            }
+
             return redirect()->route('dashboard');
         }
 
@@ -52,7 +60,7 @@ class RegisterVerificationController extends Controller
         );
 
         if ($request->user()->fresh()->isFullyVerified()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('register.plan');
         }
 
         return redirect()
@@ -73,7 +81,7 @@ class RegisterVerificationController extends Controller
         );
 
         if ($request->user()->fresh()->isFullyVerified()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('register.plan');
         }
 
         return redirect()

@@ -18,9 +18,14 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $section = $request->query('section');
+        $allowedSections = ['info', 'password', 'plans', 'danger'];
+        $initialSection = in_array($section, $allowedSections, true) ? $section : 'info';
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'initialSection' => $initialSection,
         ]);
     }
 

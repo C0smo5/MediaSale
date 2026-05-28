@@ -31,6 +31,9 @@ class UserFactory extends Factory
             'cpf' => fake()->numerify('###########'),
             'email_verified_at' => now(),
             'phone_verified_at' => now(),
+            'plan_key' => 'pro',
+            'plan_billing' => 'monthly',
+            'payment_completed' => true,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
@@ -55,6 +58,48 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
             'phone_verified_at' => null,
+            'plan_key' => null,
+            'plan_billing' => null,
+        ]);
+    }
+
+    /**
+     * User selected a plan but has not finished verification.
+     */
+    public function awaitingVerification(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+            'phone_verified_at' => null,
+            'plan_key' => 'starter',
+            'plan_billing' => 'monthly',
+        ]);
+    }
+
+    /**
+     * User finished verification but has not selected a plan yet.
+     */
+    public function verifiedAwaitingPlan(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+            'plan_key' => null,
+            'plan_billing' => null,
+        ]);
+    }
+
+    /**
+     * User completed verification and selected a paid plan (payment step pending).
+     */
+    public function awaitingPayment(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+            'plan_key' => 'starter',
+            'plan_billing' => 'monthly',
+            'payment_completed' => false,
         ]);
     }
 }

@@ -1,9 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import { ComparisonTable } from '@/Components/plans/PlansPicker';
+import { plans as unifiedPlans, plansByKey, getPlanPrice, formatBrl } from '@/data/plans';
+import { calculateUpgradeCharge, isPlanUpgrade } from '@/lib/planUpgrade';
 
 const LogoutIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -13,40 +16,34 @@ const LogoutIcon = () => (
     </svg>
 );
 
-const plans = [
-    {
-        key: 'free',
-        label: 'Gratis',
-        price: 'R$ 0',
-        period: '/mes',
-        description: 'Para comecar a explorar',
-        features: ['5 analises por mes', '10 lojas monitoradas', 'Historico de 7 dias'],
-        current: false,
-    },
-    {
-        key: 'pro',
-        label: 'Pro',
-        price: 'R$ 49',
-        period: '/mes',
-        description: 'Para vendedores ativos',
-        features: ['100 analises por mes', '50 lojas monitoradas', 'Historico de 90 dias', 'Alertas de preco', 'Exportar relatorios'],
-        current: true,
-    },
-    {
-        key: 'enterprise',
-        label: 'Enterprise',
-        price: 'R$ 149',
-        period: '/mes',
-        description: 'Para operacoes em escala',
-        features: ['Analises ilimitadas', 'Lojas ilimitadas', 'Historico completo', 'Acesso via API', 'Suporte prioritario'],
-        current: false,
-    },
+const SettingsIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+);
+
+const ChevronIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6" />
+    </svg>
+);
+
+const accountStats = [
+    { label: 'Membro desde', value: 'Jan 2025' },
+    { label: 'Analises realizadas', value: '47' },
+    { label: 'Economia gerada', value: 'R$ 3.240' },
+    { label: 'Lojas favoritas', value: '8' },
 ];
 
-export default function Edit({ mustVerifyEmail, status }) {
+export default function Edit({ mustVerifyEmail, status, initialSection = 'info' }) {
     const { auth } = usePage().props;
     const user = auth.user;
-    const [activeSection, setActiveSection] = useState('info');
+    const [activeSection, setActiveSection] = useState(initialSection);
+
+    const currentPlanKey = user.plan_key ?? 'trial';
+    const currentPlanBilling = user.plan_billing ?? 'monthly';
+    const currentPlan = plansByKey[currentPlanKey] ?? plansByKey.trial;
 
     const initials = user.name
         .split(' ')
@@ -56,222 +53,458 @@ export default function Edit({ mustVerifyEmail, status }) {
         .toUpperCase();
 
     const sections = [
-        { key: 'info', label: 'Dados pessoais', iconLabel: 'DP' },
-        { key: 'password', label: 'Senha', iconLabel: 'SN' },
-        { key: 'plans', label: 'Planos', iconLabel: 'PL' },
-        { key: 'danger', label: 'Zona de risco', iconLabel: 'ZR' },
+        { key: 'info', label: 'Dados pessoais', description: 'Nome e e-mail', iconLabel: 'DP' },
+        { key: 'password', label: 'Senha', description: 'Seguranca de acesso', iconLabel: 'SN' },
+        { key: 'settings', label: 'Configuracoes', description: 'Preferencias da conta', iconLabel: 'CF', isLink: true },
+        { key: 'plans', label: 'Planos', description: 'Assinatura e uso', iconLabel: 'PL' },
+        { key: 'danger', label: 'Zona de risco', description: 'Excluir conta', iconLabel: 'ZR', isDanger: true },
     ];
+
+    const renderContent = () => {
+        if (activeSection === 'settings') {
+            return (
+                <div
+                    className="overflow-hidden rounded-2xl border"
+                    style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
+                >
+                    <div
+                        className="border-b px-6 py-8 sm:px-8"
+                        style={{
+                            borderColor: 'rgba(124,58,237,0.10)',
+                            background: 'linear-gradient(135deg, #f0eeff 0%, #ffffff 60%)',
+                        }}
+                    >
+                        <div
+                            className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
+                            style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                        >
+                            <SettingsIcon />
+                        </div>
+                        <h2 className="text-lg font-bold" style={{ color: '#1a1040' }}>
+                            Configuracoes da conta
+                        </h2>
+                        <p className="mt-2 max-w-lg text-sm leading-relaxed" style={{ color: '#6b6b8a' }}>
+                            Notificacoes, preferencias do chat, lojas monitoradas, privacidade e guia de
+                            implementacao para o backend.
+                        </p>
+                        <Link
+                            href={route('settings')}
+                            className="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                            style={{
+                                background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                boxShadow: '0 4px 14px rgba(124,58,237,0.25)',
+                            }}
+                        >
+                            Abrir configuracoes
+                            <ChevronIcon />
+                        </Link>
+                    </div>
+                    <div className="grid gap-3 p-6 sm:grid-cols-2">
+                        {[
+                            'Notificacoes por e-mail e SMS',
+                            'Preferencias do Chat IA',
+                            'Plano e limites de uso',
+                            'Privacidade e exportacao',
+                        ].map((item) => (
+                            <div
+                                key={item}
+                                className="rounded-xl border px-4 py-3 text-sm"
+                                style={{ borderColor: 'rgba(124,58,237,0.12)', color: '#6b6b8a' }}
+                            >
+                                {item}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (activeSection === 'info') {
+            return (
+                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
+                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                        <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Dados pessoais</h2>
+                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Atualize seu nome e endereco de e-mail</p>
+                    </div>
+                    <div className="px-6 py-6">
+                        <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} status={status} />
+                    </div>
+                </div>
+            );
+        }
+
+        if (activeSection === 'password') {
+            return (
+                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
+                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                        <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Alterar senha</h2>
+                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>
+                            Use uma senha longa e aleatoria para manter sua conta segura
+                        </p>
+                    </div>
+                    <div className="px-6 py-6">
+                        <UpdatePasswordForm />
+                    </div>
+                </div>
+            );
+        }
+
+        if (activeSection === 'plans') {
+            return (
+                <div className="space-y-4">
+                    {status === 'plan-updated' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                        >
+                            Plano atualizado com sucesso.
+                        </div>
+                    )}
+                    {status === 'subscription-cancelled' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                        >
+                            Assinatura cancelada. Voce voltou ao plano Trial.
+                        </div>
+                    )}
+                    {status === 'plan-change-cancelled' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#f0eeff', borderColor: 'rgba(124,58,237,0.22)', color: '#7c3aed' }}
+                        >
+                            Alteracao de plano cancelada.
+                        </div>
+                    )}
+                    <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
+                        <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                            <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Escolha seu plano</h2>
+                            <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>
+                                Voce esta no <strong style={{ color: '#7c3aed' }}>Plano {currentPlan.name}</strong> ({currentPlanBilling === 'annual' ? 'anual' : 'mensal'}). No Trial, o upgrade cobra o preço fixo integral do plano escolhido, sem juros. Nos demais planos, cobra-se o complemento ate o preço fixo do destino + 6,38% de juros sobre o complemento.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 p-6 lg:grid-cols-3">
+                            {unifiedPlans.map((plan) => {
+                                const isCurrent = plan.key === currentPlanKey;
+                                const monthly = getPlanPrice(plan, 'monthly');
+                                const canUpgrade = isPlanUpgrade(
+                                    currentPlanKey,
+                                    currentPlanBilling,
+                                    plan.key,
+                                    currentPlanBilling,
+                                );
+                                const upgradeCharge = canUpgrade
+                                    ? calculateUpgradeCharge(
+                                          currentPlanKey,
+                                          currentPlanBilling,
+                                          plan.key,
+                                          currentPlanBilling,
+                                      )
+                                    : null;
+                                return (
+                                    <div
+                                        key={plan.key}
+                                        className="relative flex flex-col gap-4 rounded-2xl border p-5"
+                                        style={{
+                                            borderColor: isCurrent ? 'rgba(124,58,237,0.40)' : 'rgba(124,58,237,0.12)',
+                                            backgroundColor: isCurrent ? '#f0eeff' : '#ffffff',
+                                            boxShadow: isCurrent ? '0 4px 20px rgba(124,58,237,0.10)' : 'none',
+                                        }}
+                                    >
+                                        {isCurrent && (
+                                            <span
+                                                className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                                                style={{ backgroundColor: '#7c3aed' }}
+                                            >
+                                                Atual
+                                            </span>
+                                        )}
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b6b8a' }}>
+                                                {plan.name}
+                                            </p>
+                                            <div className="mt-1 flex items-end gap-1">
+                                                <span className="text-2xl font-bold" style={{ color: '#1a1040' }}>
+                                                    {plan.monthlyPrice === 0 ? 'Grátis' : formatBrl(monthly)}
+                                                </span>
+                                                {plan.monthlyPrice !== 0 && (
+                                                    <span className="mb-0.5 text-sm" style={{ color: '#6b6b8a' }}>
+                                                        /mês
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>
+                                                {plan.description}
+                                            </p>
+                                        </div>
+                                        <ul className="flex-1 space-y-2">
+                                            {plan.features
+                                                .filter((f) => f.included)
+                                                .slice(0, 5)
+                                                .map((feature) => (
+                                                    <li key={feature.label} className="flex items-center gap-2 text-xs" style={{ color: '#1a1040' }}>
+                                                        <span className="font-bold" style={{ color: '#059669' }}>
+                                                            ✓
+                                                        </span>
+                                                        {feature.detail ? `${feature.label} (${feature.detail})` : feature.label}
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                        {isCurrent ? (
+                                            <span
+                                                className="block w-full rounded-xl py-2.5 text-center text-sm font-semibold"
+                                                style={{ backgroundColor: 'rgba(124,58,237,0.15)', color: '#7c3aed' }}
+                                            >
+                                                Plano atual
+                                            </span>
+                                        ) : canUpgrade ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    router.post(route('plans.update'), {
+                                                        plan_key: plan.key,
+                                                        plan_billing: currentPlanBilling,
+                                                    })
+                                                }
+                                                className="w-full rounded-xl py-2.5 text-center text-sm font-semibold text-white"
+                                                style={{
+                                                    background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                                }}
+                                            >
+                                                Upgrade · {formatBrl(upgradeCharge.amountDue)}
+                                            </button>
+                                        ) : (
+                                            <span
+                                                className="block w-full rounded-xl py-2.5 text-center text-xs font-medium"
+                                                style={{ backgroundColor: 'rgba(124,58,237,0.06)', color: '#6b6b8a' }}
+                                            >
+                                                {plan.key === 'trial' ? 'Use cancelar assinatura' : 'Plano inferior'}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <ComparisonTable billing={currentPlanBilling} selectedKey={currentPlanKey} />
+
+                    {currentPlanKey !== 'trial' && (
+                        <div
+                            className="flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center"
+                            style={{ backgroundColor: '#ffffff', borderColor: 'rgba(239,68,68,0.2)' }}
+                        >
+                            <div>
+                                <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
+                                    Cancelar assinatura
+                                </p>
+                                <p className="mt-0.5 text-xs" style={{ color: '#6b6b8a' }}>
+                                    Voce volta imediatamente ao plano Trial gratuito.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (
+                                        window.confirm(
+                                            'Cancelar sua assinatura e voltar ao plano Trial? Esta acao e imediata.',
+                                        )
+                                    ) {
+                                        router.post(route('subscription.cancel'));
+                                    }
+                                }}
+                                className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-red-50"
+                                style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#dc2626' }}
+                            >
+                                Cancelar assinatura
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (activeSection === 'danger') {
+            return (
+                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(234,88,12,0.25)' }}>
+                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(234,88,12,0.15)', backgroundColor: '#fff7ed' }}>
+                        <h2 className="text-base font-bold" style={{ color: '#ea580c' }}>Zona de risco</h2>
+                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Acoes irreversiveis para sua conta</p>
+                    </div>
+                    <div className="px-6 py-6">
+                        <DeleteUserForm />
+                    </div>
+                </div>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <AuthenticatedLayout>
             <Head title="Perfil" />
 
-            <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
-                <div className="mx-auto max-w-7xl space-y-8">
-                    <div>
-                        <h1 className="text-2xl font-bold" style={{ color: '#1a1040' }}>Meu perfil</h1>
-                        <p className="mt-1 text-sm" style={{ color: '#6b6b8a' }}>Gerencie suas informacoes, seguranca e preferencias da conta</p>
-                    </div>
-
-                    <div className="flex flex-col gap-6 lg:flex-row">
-                        <aside className="w-full shrink-0 space-y-4 lg:w-72">
-                            <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                <div className="h-16" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)' }} />
-                                <div className="px-5 pb-5">
+            <div className="min-h-screen min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
+                <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
+                    <div
+                        className="overflow-hidden rounded-2xl border"
+                        style={{
+                            backgroundColor: '#ffffff',
+                            borderColor: 'rgba(124,58,237,0.12)',
+                            boxShadow: '0 4px 24px rgba(124,58,237,0.06)',
+                        }}
+                    >
+                        <div
+                            className="relative px-6 pb-6 pt-8 sm:px-8"
+                            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c4b5fd 100%)' }}
+                        >
+                            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                <div className="flex items-end gap-4">
                                     <div
-                                        className="-mt-8 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white text-xl font-bold text-white shadow-lg"
-                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)' }}
+                                        className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border-4 border-white text-2xl font-bold text-white shadow-lg"
+                                        style={{ background: 'linear-gradient(135deg,#5b21b6,#7c3aed)' }}
                                     >
                                         {initials}
                                     </div>
-                                    <div className="mt-3">
-                                        <p className="text-base font-bold" style={{ color: '#1a1040' }}>{user.name}</p>
-                                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>{user.email}</p>
+                                    <div className="min-w-0 pb-1">
+                                        <h1 className="truncate text-xl font-bold text-white sm:text-2xl">{user.name}</h1>
+                                        <p className="mt-1 truncate text-sm text-white/80">{user.email}</p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                                                Plano {currentPlan.name}
+                                            </span>
+                                            <span className="rounded-full bg-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                                                Conta verificada
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}>
-                                            Plano Pro
-                                        </span>
-                                        <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
-                                            Conta verificada
-                                        </span>
-                                    </div>
-
+                                </div>
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <Link
+                                        href={route('settings')}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white no-underline backdrop-blur-sm transition-colors hover:bg-white/25"
+                                    >
+                                        <SettingsIcon />
+                                        Configuracoes
+                                    </Link>
                                     <button
                                         type="button"
                                         onClick={() => router.post(route('logout'))}
-                                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border py-2 text-sm font-medium transition-all duration-200"
-                                        style={{ borderColor: 'rgba(234,88,12,0.25)', color: '#ea580c', backgroundColor: 'transparent' }}
-                                        onMouseEnter={(event) => {
-                                            event.currentTarget.style.backgroundColor = '#fff7ed';
-                                            event.currentTarget.style.borderColor = 'rgba(234,88,12,0.45)';
-                                        }}
-                                        onMouseLeave={(event) => {
-                                            event.currentTarget.style.backgroundColor = 'transparent';
-                                            event.currentTarget.style.borderColor = 'rgba(234,88,12,0.25)';
-                                        }}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/90"
+                                        style={{ color: '#7c3aed' }}
                                     >
-                                        <LogoutIcon /> Sair da conta
+                                        <LogoutIcon />
+                                        Sair
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="space-y-3 rounded-2xl border p-5" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b6b8a' }}>Dados da conta</p>
-                                {[
-                                    { label: 'Membro desde', value: 'Jan 2025' },
-                                    { label: 'Analises realizadas', value: '47' },
-                                    { label: 'Economia gerada', value: 'R$ 3.240' },
-                                    { label: 'Lojas favoritas', value: '8' },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center justify-between">
-                                        <span className="text-xs" style={{ color: '#6b6b8a' }}>{item.label}</span>
-                                        <span className="text-xs font-semibold" style={{ color: '#1a1040' }}>{item.value}</span>
+                    <div className="flex flex-col gap-6 lg:flex-row">
+                        <aside className="w-full shrink-0 lg:w-72">
+                            <div
+                                className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border p-4 lg:grid-cols-1"
+                                style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
+                            >
+                                {accountStats.map((item) => (
+                                    <div key={item.label} className="min-w-0">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#6b6b8a' }}>
+                                            {item.label}
+                                        </p>
+                                        <p className="mt-0.5 truncate text-sm font-bold" style={{ color: '#1a1040' }}>
+                                            {item.value}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
 
-                            <nav className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                {sections.map((section, index) => (
-                                    <button
-                                        key={section.key}
-                                        type="button"
-                                        onClick={() => setActiveSection(section.key)}
-                                        className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-all duration-150"
-                                        style={{
-                                            borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
-                                            backgroundColor: activeSection === section.key ? '#f0eeff' : 'transparent',
-                                            color: activeSection === section.key ? '#7c3aed' : section.key === 'danger' ? '#ea580c' : '#1a1040',
-                                        }}
-                                    >
-                                        <span
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-bold"
+                            <nav
+                                className="overflow-hidden rounded-2xl border"
+                                style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
+                            >
+                                <p className="border-b px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ borderColor: 'rgba(124,58,237,0.08)', color: '#6b6b8a' }}>
+                                    Menu do perfil
+                                </p>
+                                {sections.map((section, index) => {
+                                    const isActive = activeSection === section.key;
+
+                                    if (section.isLink) {
+                                        return (
+                                            <Link
+                                                key={section.key}
+                                                href={route('settings')}
+                                                className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium no-underline transition-colors"
+                                                style={{
+                                                    borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
+                                                    color: '#7c3aed',
+                                                    backgroundColor: 'transparent',
+                                                }}
+                                            >
+                                                <span
+                                                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+                                                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                                                >
+                                                    {section.iconLabel}
+                                                </span>
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block">{section.label}</span>
+                                                    <span className="block text-xs font-normal" style={{ color: '#6b6b8a' }}>
+                                                        {section.description}
+                                                    </span>
+                                                </span>
+                                                <ChevronIcon />
+                                            </Link>
+                                        );
+                                    }
+
+                                    return (
+                                        <button
+                                            key={section.key}
+                                            type="button"
+                                            onClick={() => setActiveSection(section.key)}
+                                            className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors"
                                             style={{
-                                                backgroundColor: activeSection === section.key ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.08)',
-                                                color: activeSection === section.key ? '#7c3aed' : '#6b6b8a',
+                                                borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
+                                                backgroundColor: isActive ? '#f0eeff' : 'transparent',
+                                                color: isActive ? '#7c3aed' : section.isDanger ? '#ea580c' : '#1a1040',
                                             }}
                                         >
-                                            {section.iconLabel}
-                                        </span>
-                                        <span>{section.label}</span>
-                                        {activeSection === section.key && (
-                                            <span className="ml-auto text-xs" style={{ color: '#a855f7' }}>Ativo</span>
-                                        )}
-                                    </button>
-                                ))}
+                                            <span
+                                                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+                                                style={{
+                                                    backgroundColor: isActive
+                                                        ? 'rgba(124,58,237,0.15)'
+                                                        : section.isDanger
+                                                          ? '#fff7ed'
+                                                          : 'rgba(124,58,237,0.08)',
+                                                    color: isActive ? '#7c3aed' : section.isDanger ? '#ea580c' : '#6b6b8a',
+                                                }}
+                                            >
+                                                {section.iconLabel}
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block">{section.label}</span>
+                                                <span
+                                                    className="block text-xs font-normal"
+                                                    style={{ color: isActive ? '#7c3aed' : '#6b6b8a' }}
+                                                >
+                                                    {section.description}
+                                                </span>
+                                            </span>
+                                            {isActive && (
+                                                <span className="text-xs font-semibold" style={{ color: '#a855f7' }}>
+                                                    Ativo
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </nav>
                         </aside>
 
-                        <div className="min-w-0 flex-1">
-                            {activeSection === 'info' && (
-                                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
-                                        <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Dados pessoais</h2>
-                                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Atualize seu nome e endereco de e-mail</p>
-                                    </div>
-                                    <div className="px-6 py-6">
-                                        <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} status={status} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeSection === 'password' && (
-                                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
-                                        <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Alterar senha</h2>
-                                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Use uma senha longa e aleatoria para manter sua conta segura</p>
-                                    </div>
-                                    <div className="px-6 py-6">
-                                        <UpdatePasswordForm />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeSection === 'plans' && (
-                                <div className="space-y-4">
-                                    <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                        <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
-                                            <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Escolha seu plano</h2>
-                                            <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>
-                                                Voce esta no <strong style={{ color: '#7c3aed' }}>Plano Pro</strong>. Ajuste o plano quando quiser.
-                                            </p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
-                                            {plans.map((plan) => (
-                                                <div
-                                                    key={plan.key}
-                                                    className="relative flex flex-col gap-4 rounded-2xl border p-5 transition-all duration-200"
-                                                    style={{
-                                                        borderColor: plan.current ? 'rgba(124,58,237,0.40)' : 'rgba(124,58,237,0.12)',
-                                                        backgroundColor: plan.current ? '#f0eeff' : '#ffffff',
-                                                        boxShadow: plan.current ? '0 4px 20px rgba(124,58,237,0.10)' : 'none',
-                                                    }}
-                                                >
-                                                    {plan.current && (
-                                                        <span className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}>
-                                                            Atual
-                                                        </span>
-                                                    )}
-                                                    <div>
-                                                        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b6b8a' }}>{plan.label}</p>
-                                                        <div className="mt-1 flex items-end gap-1">
-                                                            <span className="text-2xl font-bold" style={{ color: '#1a1040' }}>{plan.price}</span>
-                                                            <span className="mb-0.5 text-sm" style={{ color: '#6b6b8a' }}>{plan.period}</span>
-                                                        </div>
-                                                        <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>{plan.description}</p>
-                                                    </div>
-                                                    <ul className="flex-1 space-y-2">
-                                                        {plan.features.map((feature) => (
-                                                            <li key={feature} className="flex items-center gap-2 text-xs" style={{ color: '#1a1040' }}>
-                                                                <span style={{ color: '#059669' }}>OK</span> {feature}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                    <button
-                                                        type="button"
-                                                        disabled={plan.current}
-                                                        className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all duration-200"
-                                                        style={
-                                                            plan.current
-                                                                ? { backgroundColor: 'rgba(124,58,237,0.15)', color: '#7c3aed', cursor: 'default' }
-                                                                : { background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#ffffff', boxShadow: '0 4px 14px rgba(124,58,237,0.20)' }
-                                                        }
-                                                    >
-                                                        {plan.current ? 'Plano atual' : `Mudar para ${plan.label}`}
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                    </div>
-
-                                    <div className="flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
-                                        <div>
-                                            <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>Proxima cobranca</p>
-                                            <p className="mt-0.5 text-xs" style={{ color: '#6b6b8a' }}>R$ 49,00 em 15 de junho de 2025 · Cartao final 4242</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold transition-all"
-                                            style={{ borderColor: 'rgba(124,58,237,0.25)', color: '#7c3aed', backgroundColor: '#f0eeff' }}
-                                        >
-                                            Gerenciar pagamento
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeSection === 'danger' && (
-                                <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(234,88,12,0.25)' }}>
-                                    <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(234,88,12,0.15)', backgroundColor: '#fff7ed' }}>
-                                        <h2 className="text-base font-bold" style={{ color: '#ea580c' }}>Zona de risco</h2>
-                                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Acoes irreversiveis para sua conta</p>
-                                    </div>
-                                    <div className="px-6 py-6">
-                                        <DeleteUserForm />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <div className="min-w-0 flex-1">{renderContent()}</div>
                     </div>
                 </div>
             </div>

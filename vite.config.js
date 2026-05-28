@@ -16,4 +16,12 @@ export default defineConfig({
             '@': path.resolve(__dirname, './resources/js'),
         },
     },
+    server: {
+        // Evita public/hot com http://[::1]:porta (ERR_ADDRESS_INVALID no Chrome)
+        host: '127.0.0.1',
+        port: Number(process.env.VITE_PORT) || 5173,
+        hmr: {
+            host: '127.0.0.1',
+        },
+    },
 });

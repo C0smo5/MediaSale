@@ -4,11 +4,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPaymentController;
 use App\Http\Controllers\UserPlanController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    $user = auth()->user();
+    /** @var User|null $user */
+    $user = Auth::user();
 
     if ($user) {
         if (! $user->isFullyVerified()) {
@@ -30,7 +33,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/plans', function () {
-    if (auth()->check()) {
+    if (Auth::user() !== null) {
         return redirect()->route('profile.edit', ['section' => 'plans']);
     }
 

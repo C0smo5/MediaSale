@@ -35,7 +35,7 @@ test('upgrade to trial is not allowed', function () {
 })->throws(InvalidArgumentException::class);
 
 test('plan upgrade redirects to subscription payment without applying plan', function () {
-    $user = User::factory()->create([
+    $user = createUser([
         'plan_key' => 'starter',
         'plan_billing' => 'monthly',
         'payment_completed' => true,
@@ -63,7 +63,7 @@ test('plan upgrade redirects to subscription payment without applying plan', fun
 test('completing subscription payment applies pending upgrade', function () {
     config(['registration.allow_payment_skip' => true]);
 
-    $user = User::factory()->create([
+    $user = createUser([
         'plan_key' => 'starter',
         'plan_billing' => 'monthly',
         'payment_completed' => true,
@@ -87,7 +87,7 @@ test('completing subscription payment applies pending upgrade', function () {
 });
 
 test('downgrade attempt is rejected', function () {
-    $user = User::factory()->create([
+    $user = createUser([
         'plan_key' => 'pro',
         'plan_billing' => 'monthly',
         'payment_completed' => true,
@@ -107,7 +107,7 @@ test('downgrade attempt is rejected', function () {
 });
 
 test('cancel subscription returns user to trial without upgrade charges', function () {
-    $user = User::factory()->create([
+    $user = createUser([
         'plan_key' => 'pro',
         'plan_billing' => 'monthly',
         'payment_completed' => true,

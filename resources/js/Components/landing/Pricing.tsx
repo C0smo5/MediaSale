@@ -1,22 +1,42 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
-import { Toast } from './Ui/Toast';
 import { CheckIcon, XIcon, ZapIcon, ShieldIcon, RocketIcon } from './Icons/Icons';
-import { pricingPlans } from './data/pricingPlans';
+import { plans, getPlanPrice } from '@/data/plans';
+import { savePlanSelection } from '@/lib/planSelection';
 
 export const Pricing: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
 
-  const showToast = (msg: string) => { setToastMsg(msg); setToastVisible(true); };
-  const hideToast = useCallback(() => setToastVisible(false), []);
+  const billing: 'monthly' | 'annual' = isAnnual ? 'annual' : 'monthly';
 
-  const planIcons: Record<string, React.ReactNode> = {
-    'Básico': <ZapIcon className="w-6 h-6" />,
-    'Pro': <ShieldIcon className="w-6 h-6" />,
-    'Premium': <RocketIcon className="w-6 h-6" />,
+  const iconByKey: Record<string, React.ReactNode> = {
+    trial: <ZapIcon className="w-6 h-6" />,
+    starter: <ShieldIcon className="w-6 h-6" />,
+    pro: <ShieldIcon className="w-6 h-6" />,
+    business: <RocketIcon className="w-6 h-6" />,
+    elite: <RocketIcon className="w-6 h-6" />,
   };
+
+  const pricingPlans = useMemo(() => {
+    const order = ['trial', 'starter', 'pro', 'business', 'elite'];
+
+    return order.map((key) => {
+      const p = plans.find((x) => x.key === (key as any))!;
+      return {
+        key: p.key,
+        name: p.name,
+        badge: p.badge,
+        description: p.description,
+        monthlyPrice: String(p.monthlyPrice).replace('.', ','),
+        annualPrice: String(getPlanPrice(p, 'annual')).replace('.', ','),
+        features: p.features.filter((f) => f.included).slice(0, 5).map((f) => (f.detail ? `${f.label} (${f.detail})` : f.label)),
+        limitations: p.features.filter((f) => !f.included).slice(0, 2).map((f) => f.label),
+        highlighted: p.key === 'pro',
+        accentColor: p.key === 'business' ? 'emerald-brand' : p.key === 'elite' ? 'orange-brand' : 'brand',
+        iconBg: p.key === 'business' ? 'bg-green-soft' : p.key === 'elite' ? 'bg-orange-soft' : 'bg-purple-soft',
+      };
+    });
+  }, []);
 
   return (
     <section id="pricing" className="py-24 sm:py-32 bg-gradient-to-b from-purple-soft/38 via-base to-purple-soft/32 relative overflow-hidden">
@@ -53,7 +73,7 @@ export const Pricing: React.FC = () => {
                   </div>
                 )}
                 <div className="mb-6 pt-2">
-                  <div className={`w-12 h-12 ${plan.iconBg} rounded-xl flex items-center justify-center text-${plan.accentColor} mb-4`}>{planIcons[plan.name]}</div>
+                  <div className={`w-12 h-12 ${plan.iconBg} rounded-xl flex items-center justify-center text-${plan.accentColor} mb-4`}>{iconByKey?.[plan.key] ?? <ZapIcon className="w-6 h-6" />}</div>
                   <h3 className="font-display text-xl font-bold text-ink mb-1">{plan.name}</h3>
                   <p className="text-sm text-muted">{plan.description}</p>
                 </div>
@@ -81,22 +101,29 @@ export const Pricing: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                <button onClick={() => showToast(`Plano ${plan.name} — em breve disponível!`)}
-                  className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+                <a
+                  href={route('plans', { plan: plan.key, billing })}
+                  onClick={() => savePlanSelection(plan.key, billing)}
+                  className={`inline-flex w-full items-center justify-center py-3.5 rounded-2xl text-center font-semibold text-sm transition-all duration-200 ${
                     plan.highlighted ? 'gradient-brand text-white hover:shadow-lg hover:shadow-brand/25 hover:-translate-y-0.5'
                     : 'bg-purple-soft/70 text-ink border border-brand-default hover:bg-purple-soft hover:border-brand hover:shadow-md hover:-translate-y-0.5'}`}
-                >Começar com {plan.name}</button>
+                >Ver plano {plan.name}</a>
               </div>
             </AnimateOnScroll>
           ))}
         </div>
 
-        <AnimateOnScroll className="text-center mt-10">
+        <AnimateOnScroll className="text-center mt-10 space-y-4">
           <p className="text-sm text-muted">Todos os planos incluem 7 dias grátis. Cancele quando quiser, sem multa.</p>
+          <a
+            href={route('plans')}
+            className="inline-flex items-center justify-center rounded-2xl border border-brand-default bg-purple-soft/70 px-6 py-3 text-sm font-semibold text-ink transition-all hover:border-brand hover:bg-purple-soft hover:shadow-md"
+          >
+            Ver todos os planos
+          </a>
         </AnimateOnScroll>
       </div>
 
-      <Toast message={toastMsg} visible={toastVisible} onClose={hideToast} />
     </section>
   );
 };

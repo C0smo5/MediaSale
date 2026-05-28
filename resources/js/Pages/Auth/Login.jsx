@@ -16,11 +16,12 @@ const LoginIcon = () => (
     </svg>
 );
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status, canResetPassword, redirect: redirectTo = null }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
+        redirect: redirectTo ?? '',
     });
 
     const submit = (e) => {

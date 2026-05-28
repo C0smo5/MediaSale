@@ -210,8 +210,8 @@ export default function RegisterVerify({
         });
     };
 
-    const totalSteps = 2;
-    const completedSteps = (emailVerified ? 1 : 0) + (phoneVerified ? 1 : 0);
+    const totalSteps = 3;
+    const completedSteps = 1 + (emailVerified ? 1 : 0) + (phoneVerified ? 1 : 0);
     const progress = Math.round((completedSteps / totalSteps) * 100);
 
     return (
@@ -222,7 +222,7 @@ export default function RegisterVerify({
                 icon={<ShieldCheckIcon />}
                 badge="Verificacao"
                 title="Confirme seu cadastro"
-                description="Informe os codigos enviados para validar seu acesso. Voce pode confirmar e-mail e telefone em qualquer ordem."
+                description="Etapa 2 de 3 — informe os codigos enviados para validar seu acesso. Voce pode confirmar e-mail e telefone em qualquer ordem."
             />
 
             <div className="mb-6">

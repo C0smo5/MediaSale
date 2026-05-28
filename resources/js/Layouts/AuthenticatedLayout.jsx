@@ -34,6 +34,14 @@ const ProfileIcon = () => (
     </svg>
 );
 
+const PlansNavIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+        <line x1="8" y1="15" x2="12" y2="15" />
+    </svg>
+);
+
 const SettingsNavIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -71,10 +79,12 @@ const getIsDesktop = () => {
 };
 
 export default function AuthenticatedLayout({ children }) {
-    const { auth, url } = usePage().props;
+    const page = usePage();
+    const { auth } = page.props;
+    const pageUrl = page.url ?? '';
     const user = auth.user;
     const chatSidebar = useChatSidebarOptional();
-    const isChatRoute = useMemo(() => route().current('chat'), [url]);
+    const isChatRoute = useMemo(() => route().current('chat'), [pageUrl]);
 
     const [isDesktop, setIsDesktop] = useState(getIsDesktop);
     const [collapsed, setCollapsed] = useState(() => {
@@ -121,7 +131,7 @@ export default function AuthenticatedLayout({ children }) {
 
     useEffect(() => {
         setMobileOpen(false);
-    }, [url]);
+    }, [pageUrl]);
 
     const toggleCollapsed = () => {
         const next = !collapsed;
@@ -146,6 +156,7 @@ export default function AuthenticatedLayout({ children }) {
     const navLinks = [
         { label: 'Dashboard', route: 'dashboard', icon: <DashboardIcon /> },
         { label: 'Chat IA', route: 'chat', icon: <ChatIcon />, isChat: true },
+        { label: 'Planos', href: route('profile.edit', { section: 'plans' }), icon: <PlansNavIcon /> },
         { label: 'Configuracoes', route: 'settings', icon: <SettingsNavIcon /> },
     ];
 
@@ -312,12 +323,12 @@ export default function AuthenticatedLayout({ children }) {
                     }}
                 >
                     {navLinks.map((link) => {
-                        const isActive = route().current(link.route);
+                        const isActive = link.href ? pageUrl.includes('section=plans') : route().current(link.route);
 
                         return (
                             <Link
-                                key={link.route}
-                                href={route(link.route)}
+                                key={link.href ?? link.route}
+                                href={link.href ?? route(link.route)}
                                 title={collapsed && isDesktop ? link.label : undefined}
                                 onClick={closeMobileSidebar}
                                 style={{

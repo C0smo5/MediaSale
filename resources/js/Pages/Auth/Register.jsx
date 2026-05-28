@@ -42,7 +42,7 @@ export default function Register() {
                 icon={<SignupIcon />}
                 badge="Cadastro"
                 title="Criar sua conta"
-                description="Informe seus dados para iniciar. Na proxima etapa voce confirma e-mail e telefone com codigos de verificacao."
+                description="Informe seus dados para iniciar. Em seguida voce confirma e-mail e telefone e, por ultimo, escolhe o plano."
             />
 
             <form onSubmit={submit} className="auth-form">

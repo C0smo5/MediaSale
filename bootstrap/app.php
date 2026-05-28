@@ -28,8 +28,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function (Request $request) {
             $user = $request->user();
 
-            if ($user && ! $user->isFullyVerified()) {
+            if (! $user) {
+                return route('dashboard');
+            }
+
+            if (! $user->isFullyVerified()) {
                 return route('register.verify');
+            }
+
+            if (! $user->hasSelectedPlan()) {
+                return route('register.plan');
+            }
+
+            if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
+                return route('register.payment');
             }
 
             return route('dashboard');

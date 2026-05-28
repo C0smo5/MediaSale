@@ -27,6 +27,9 @@ class User extends Authenticatable
         'password',
         'email_verified_at',
         'phone_verified_at',
+        'plan_key',
+        'plan_billing',
+        'payment_completed',
     ];
 
     /**
@@ -49,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
+            'payment_completed' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -71,5 +75,46 @@ class User extends Authenticatable
     public function isFullyVerified(): bool
     {
         return $this->hasVerifiedEmail() && $this->hasVerifiedPhone();
+    }
+
+    public function hasSelectedPlan(): bool
+    {
+        return $this->plan_key !== null && $this->plan_billing !== null;
+    }
+
+    public function planRequiresPaymentForKey(?string $planKey): bool
+    {
+        if ($planKey === null) {
+            return false;
+        }
+
+        return ! in_array($planKey, config('plans.free_plan_keys', ['trial']), true);
+    }
+
+    public function planRequiresPayment(): bool
+    {
+        if (! $this->hasSelectedPlan()) {
+            return false;
+        }
+
+        return $this->planRequiresPaymentForKey($this->plan_key);
+    }
+
+    public function hasCompletedPayment(): bool
+    {
+        return (bool) $this->payment_completed;
+    }
+
+    public function isRegistrationComplete(): bool
+    {
+        if (! $this->isFullyVerified() || ! $this->hasSelectedPlan()) {
+            return false;
+        }
+
+        if ($this->planRequiresPayment() && ! $this->hasCompletedPayment()) {
+            return false;
+        }
+
+        return true;
     }
 }

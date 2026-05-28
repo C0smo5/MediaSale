@@ -450,11 +450,11 @@ export default function SettingsIndex() {
                             billing e contadores reais no backend.
                         </p>
                         <Link
-                            href={route('profile.edit')}
+                            href={route('profile.edit', { section: 'plans' })}
                             className="inline-flex text-sm font-medium underline underline-offset-4"
                             style={{ color: '#7c3aed' }}
                         >
-                            Gerenciar plano no perfil
+                            Comparar e confirmar plano
                         </Link>
                     </SettingsCard>
                 );

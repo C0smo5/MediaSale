@@ -4,6 +4,9 @@ import { useState } from 'react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import { ComparisonTable } from '@/Components/plans/PlansPicker';
+import { plans as unifiedPlans, plansByKey, getPlanPrice, formatBrl } from '@/data/plans';
+import { calculateUpgradeCharge, isPlanUpgrade } from '@/lib/planUpgrade';
 
 const LogoutIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -26,36 +29,6 @@ const ChevronIcon = () => (
     </svg>
 );
 
-const plans = [
-    {
-        key: 'free',
-        label: 'Gratis',
-        price: 'R$ 0',
-        period: '/mes',
-        description: 'Para comecar a explorar',
-        features: ['5 analises por mes', '10 lojas monitoradas', 'Historico de 7 dias'],
-        current: false,
-    },
-    {
-        key: 'pro',
-        label: 'Pro',
-        price: 'R$ 49',
-        period: '/mes',
-        description: 'Para vendedores ativos',
-        features: ['100 analises por mes', '50 lojas monitoradas', 'Historico de 90 dias', 'Alertas de preco', 'Exportar relatorios'],
-        current: true,
-    },
-    {
-        key: 'enterprise',
-        label: 'Enterprise',
-        price: 'R$ 149',
-        period: '/mes',
-        description: 'Para operacoes em escala',
-        features: ['Analises ilimitadas', 'Lojas ilimitadas', 'Historico completo', 'Acesso via API', 'Suporte prioritario'],
-        current: false,
-    },
-];
-
 const accountStats = [
     { label: 'Membro desde', value: 'Jan 2025' },
     { label: 'Analises realizadas', value: '47' },
@@ -63,10 +36,14 @@ const accountStats = [
     { label: 'Lojas favoritas', value: '8' },
 ];
 
-export default function Edit({ mustVerifyEmail, status }) {
+export default function Edit({ mustVerifyEmail, status, initialSection = 'info' }) {
     const { auth } = usePage().props;
     const user = auth.user;
-    const [activeSection, setActiveSection] = useState('info');
+    const [activeSection, setActiveSection] = useState(initialSection);
+
+    const currentPlanKey = user.plan_key ?? 'trial';
+    const currentPlanBilling = user.plan_billing ?? 'monthly';
+    const currentPlan = plansByKey[currentPlanKey] ?? plansByKey.trial;
 
     const initials = user.name
         .split(' ')
@@ -175,98 +152,174 @@ export default function Edit({ mustVerifyEmail, status }) {
         if (activeSection === 'plans') {
             return (
                 <div className="space-y-4">
+                    {status === 'plan-updated' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                        >
+                            Plano atualizado com sucesso.
+                        </div>
+                    )}
+                    {status === 'subscription-cancelled' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
+                        >
+                            Assinatura cancelada. Voce voltou ao plano Trial.
+                        </div>
+                    )}
+                    {status === 'plan-change-cancelled' && (
+                        <div
+                            className="rounded-xl border px-4 py-3 text-sm font-medium"
+                            style={{ backgroundColor: '#f0eeff', borderColor: 'rgba(124,58,237,0.22)', color: '#7c3aed' }}
+                        >
+                            Alteracao de plano cancelada.
+                        </div>
+                    )}
                     <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
                         <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
                             <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Escolha seu plano</h2>
                             <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>
-                                Voce esta no <strong style={{ color: '#7c3aed' }}>Plano Pro</strong>
+                                Voce esta no <strong style={{ color: '#7c3aed' }}>Plano {currentPlan.name}</strong> ({currentPlanBilling === 'annual' ? 'anual' : 'mensal'}). No Trial, o upgrade cobra o preço fixo integral do plano escolhido, sem juros. Nos demais planos, cobra-se o complemento ate o preço fixo do destino + 6,38% de juros sobre o complemento.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-4 p-6 lg:grid-cols-3">
-                            {plans.map((plan) => (
-                                <div
-                                    key={plan.key}
-                                    className="relative flex flex-col gap-4 rounded-2xl border p-5"
-                                    style={{
-                                        borderColor: plan.current ? 'rgba(124,58,237,0.40)' : 'rgba(124,58,237,0.12)',
-                                        backgroundColor: plan.current ? '#f0eeff' : '#ffffff',
-                                        boxShadow: plan.current ? '0 4px 20px rgba(124,58,237,0.10)' : 'none',
-                                    }}
-                                >
-                                    {plan.current && (
-                                        <span
-                                            className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-xs font-bold text-white"
-                                            style={{ backgroundColor: '#7c3aed' }}
-                                        >
-                                            Atual
-                                        </span>
-                                    )}
-                                    <div>
-                                        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b6b8a' }}>
-                                            {plan.label}
-                                        </p>
-                                        <div className="mt-1 flex items-end gap-1">
-                                            <span className="text-2xl font-bold" style={{ color: '#1a1040' }}>
-                                                {plan.price}
-                                            </span>
-                                            <span className="mb-0.5 text-sm" style={{ color: '#6b6b8a' }}>
-                                                {plan.period}
-                                            </span>
-                                        </div>
-                                        <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>
-                                            {plan.description}
-                                        </p>
-                                    </div>
-                                    <ul className="flex-1 space-y-2">
-                                        {plan.features.map((feature) => (
-                                            <li key={feature} className="flex items-center gap-2 text-xs" style={{ color: '#1a1040' }}>
-                                                <span className="font-bold" style={{ color: '#059669' }}>
-                                                    ✓
-                                                </span>
-                                                {feature}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <button
-                                        type="button"
-                                        disabled={plan.current}
-                                        className="w-full rounded-xl py-2.5 text-sm font-semibold"
-                                        style={
-                                            plan.current
-                                                ? { backgroundColor: 'rgba(124,58,237,0.15)', color: '#7c3aed', cursor: 'default' }
-                                                : {
-                                                      background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
-                                                      color: '#ffffff',
-                                                  }
-                                        }
+                            {unifiedPlans.map((plan) => {
+                                const isCurrent = plan.key === currentPlanKey;
+                                const monthly = getPlanPrice(plan, 'monthly');
+                                const canUpgrade = isPlanUpgrade(
+                                    currentPlanKey,
+                                    currentPlanBilling,
+                                    plan.key,
+                                    currentPlanBilling,
+                                );
+                                const upgradeCharge = canUpgrade
+                                    ? calculateUpgradeCharge(
+                                          currentPlanKey,
+                                          currentPlanBilling,
+                                          plan.key,
+                                          currentPlanBilling,
+                                      )
+                                    : null;
+                                return (
+                                    <div
+                                        key={plan.key}
+                                        className="relative flex flex-col gap-4 rounded-2xl border p-5"
+                                        style={{
+                                            borderColor: isCurrent ? 'rgba(124,58,237,0.40)' : 'rgba(124,58,237,0.12)',
+                                            backgroundColor: isCurrent ? '#f0eeff' : '#ffffff',
+                                            boxShadow: isCurrent ? '0 4px 20px rgba(124,58,237,0.10)' : 'none',
+                                        }}
                                     >
-                                        {plan.current ? 'Plano atual' : `Mudar para ${plan.label}`}
-                                    </button>
-                                </div>
-                            ))}
+                                        {isCurrent && (
+                                            <span
+                                                className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                                                style={{ backgroundColor: '#7c3aed' }}
+                                            >
+                                                Atual
+                                            </span>
+                                        )}
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b6b8a' }}>
+                                                {plan.name}
+                                            </p>
+                                            <div className="mt-1 flex items-end gap-1">
+                                                <span className="text-2xl font-bold" style={{ color: '#1a1040' }}>
+                                                    {plan.monthlyPrice === 0 ? 'Grátis' : formatBrl(monthly)}
+                                                </span>
+                                                {plan.monthlyPrice !== 0 && (
+                                                    <span className="mb-0.5 text-sm" style={{ color: '#6b6b8a' }}>
+                                                        /mês
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="mt-1 text-xs" style={{ color: '#6b6b8a' }}>
+                                                {plan.description}
+                                            </p>
+                                        </div>
+                                        <ul className="flex-1 space-y-2">
+                                            {plan.features
+                                                .filter((f) => f.included)
+                                                .slice(0, 5)
+                                                .map((feature) => (
+                                                    <li key={feature.label} className="flex items-center gap-2 text-xs" style={{ color: '#1a1040' }}>
+                                                        <span className="font-bold" style={{ color: '#059669' }}>
+                                                            ✓
+                                                        </span>
+                                                        {feature.detail ? `${feature.label} (${feature.detail})` : feature.label}
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                        {isCurrent ? (
+                                            <span
+                                                className="block w-full rounded-xl py-2.5 text-center text-sm font-semibold"
+                                                style={{ backgroundColor: 'rgba(124,58,237,0.15)', color: '#7c3aed' }}
+                                            >
+                                                Plano atual
+                                            </span>
+                                        ) : canUpgrade ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    router.post(route('plans.update'), {
+                                                        plan_key: plan.key,
+                                                        plan_billing: currentPlanBilling,
+                                                    })
+                                                }
+                                                className="w-full rounded-xl py-2.5 text-center text-sm font-semibold text-white"
+                                                style={{
+                                                    background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                                }}
+                                            >
+                                                Upgrade · {formatBrl(upgradeCharge.amountDue)}
+                                            </button>
+                                        ) : (
+                                            <span
+                                                className="block w-full rounded-xl py-2.5 text-center text-xs font-medium"
+                                                style={{ backgroundColor: 'rgba(124,58,237,0.06)', color: '#6b6b8a' }}
+                                            >
+                                                {plan.key === 'trial' ? 'Use cancelar assinatura' : 'Plano inferior'}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div
-                        className="flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center"
-                        style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
-                    >
-                        <div>
-                            <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
-                                Proxima cobranca
-                            </p>
-                            <p className="mt-0.5 text-xs" style={{ color: '#6b6b8a' }}>
-                                R$ 49,00 em 15 de junho de 2025 · Cartao final 4242
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            className="shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold"
-                            style={{ borderColor: 'rgba(124,58,237,0.25)', color: '#7c3aed', backgroundColor: '#f0eeff' }}
+                    <ComparisonTable billing={currentPlanBilling} selectedKey={currentPlanKey} />
+
+                    {currentPlanKey !== 'trial' && (
+                        <div
+                            className="flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center"
+                            style={{ backgroundColor: '#ffffff', borderColor: 'rgba(239,68,68,0.2)' }}
                         >
-                            Gerenciar pagamento
-                        </button>
-                    </div>
+                            <div>
+                                <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
+                                    Cancelar assinatura
+                                </p>
+                                <p className="mt-0.5 text-xs" style={{ color: '#6b6b8a' }}>
+                                    Voce volta imediatamente ao plano Trial gratuito.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (
+                                        window.confirm(
+                                            'Cancelar sua assinatura e voltar ao plano Trial? Esta acao e imediata.',
+                                        )
+                                    ) {
+                                        router.post(route('subscription.cancel'));
+                                    }
+                                }}
+                                className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-red-50"
+                                style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#dc2626' }}
+                            >
+                                Cancelar assinatura
+                            </button>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -319,7 +372,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         <p className="mt-1 truncate text-sm text-white/80">{user.email}</p>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-                                                Plano Pro
+                                                Plano {currentPlan.name}
                                             </span>
                                             <span className="rounded-full bg-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
                                                 Conta verificada

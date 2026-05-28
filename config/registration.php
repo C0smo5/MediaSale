@@ -28,4 +28,14 @@ return [
         'mock_code' => env('SMS_MOCK_CODE'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pular pagamento no cadastro (somente testes / desenvolvimento)
+    |--------------------------------------------------------------------------
+    */
+    'allow_payment_skip' => (bool) env(
+        'REGISTRATION_ALLOW_PAYMENT_SKIP',
+        env('APP_DEBUG', false)
+    ),
+
 ];

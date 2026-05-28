@@ -20,6 +20,33 @@ function registerTestUser(): User
     return User::query()->where('email', 'newuser@gmail.com')->firstOrFail();
 }
 
+function completeRegistrationVerification(User $user): void
+{
+    $emailCode = captureEmailOtp($user);
+
+    test()->from(route('register.verify'))
+        ->post(route('register.verify.email'), ['code' => $emailCode])
+        ->assertRedirect(route('register.verify', absolute: false));
+
+    test()->from(route('register.verify'))
+        ->post(route('register.verify.phone'), ['code' => '123456'])
+        ->assertRedirect(route('register.plan', absolute: false));
+}
+
+function selectRegistrationPlan(User $user, string $planKey = 'starter', string $billing = 'monthly'): void
+{
+    $expectedRedirect = $planKey === 'trial'
+        ? route('dashboard', absolute: false)
+        : route('register.payment', absolute: false);
+
+    test()->actingAs($user)
+        ->post(route('register.plan.store'), [
+            'plan_key' => $planKey,
+            'plan_billing' => $billing,
+        ])
+        ->assertRedirect($expectedRedirect);
+}
+
 function captureEmailOtp(User $user): string
 {
     Notification::assertSentTo($user, RegistrationOtpNotification::class);
@@ -31,30 +58,89 @@ function captureEmailOtp(User $user): string
     return $notification->code;
 }
 
-test('user completes two step registration with email and sms codes', function () {
+test('user completes registration with verification, plan selection and payment redirect', function () {
     $user = registerTestUser();
-    $emailCode = captureEmailOtp($user);
-
-    $this->from(route('register.verify'))
-        ->post(route('register.verify.email'), ['code' => $emailCode])
-        ->assertRedirect(route('register.verify', absolute: false));
-
-    $this->from(route('register.verify'))
-        ->post(route('register.verify.phone'), ['code' => '123456'])
-        ->assertRedirect(route('dashboard', absolute: false));
+    completeRegistrationVerification($user);
+    selectRegistrationPlan($user, 'starter');
 
     $user->refresh();
 
     expect($user->hasVerifiedEmail())->toBeTrue();
     expect($user->hasVerifiedPhone())->toBeTrue();
     expect($user->isFullyVerified())->toBeTrue();
+    expect($user->plan_key)->toBe('starter');
+    expect($user->plan_billing)->toBe('monthly');
+    expect($user->planRequiresPayment())->toBeTrue();
+    expect($user->isRegistrationComplete())->toBeFalse();
+});
+
+test('trial plan skips payment and completes registration', function () {
+    $user = registerTestUser();
+    completeRegistrationVerification($user);
+    selectRegistrationPlan($user, 'trial');
+
+    $user->refresh();
+
+    expect($user->isRegistrationComplete())->toBeTrue();
+
+    test()->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk();
+});
+
+test('dashboard is blocked until verification is complete', function () {
+    $user = registerTestUser();
+
+    test()->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('register.verify', absolute: false));
+});
+
+test('dashboard is blocked until plan is selected', function () {
+    $user = registerTestUser();
+    completeRegistrationVerification($user);
+
+    test()->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('register.plan', absolute: false));
+});
+
+test('dashboard is blocked until payment for paid plans', function () {
+    $user = registerTestUser();
+    completeRegistrationVerification($user);
+    selectRegistrationPlan($user, 'starter');
+
+    test()->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('register.payment', absolute: false));
+});
+
+test('paid plan user can skip payment in debug to access dashboard', function () {
+    config(['registration.allow_payment_skip' => true]);
+
+    $user = registerTestUser();
+    completeRegistrationVerification($user);
+    selectRegistrationPlan($user, 'starter');
+
+    test()->actingAs($user)
+        ->post(route('register.payment.skip'))
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $user->refresh();
+
+    expect($user->hasCompletedPayment())->toBeTrue();
+    expect($user->isRegistrationComplete())->toBeTrue();
+
+    test()->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk();
 });
 
 test('invalid verification code is rejected', function () {
     $user = registerTestUser();
     captureEmailOtp($user);
 
-    $this->from(route('register.verify'))
+    test()->from(route('register.verify'))
         ->post(route('register.verify.email'), ['code' => '000000'])
         ->assertSessionHasErrors('code');
 });
@@ -67,7 +153,7 @@ test('expired verification code is rejected', function () {
         'expires_at' => now()->subMinute(),
     ]);
 
-    $this->from(route('register.verify'))
+    test()->from(route('register.verify'))
         ->post(route('register.verify.email'), ['code' => $emailCode])
         ->assertSessionHasErrors('code');
 });
@@ -76,13 +162,13 @@ test('verification resend is throttled', function () {
     $user = registerTestUser();
     captureEmailOtp($user);
 
-    $this->from(route('register.verify'))
+    test()->from(route('register.verify'))
         ->post(route('register.verify.resend.email'))
         ->assertSessionHasErrors('email');
 });
 
 test('registration rejects invalid cpf email and phone', function () {
-    $response = $this->from('/register')->post('/register', [
+    $response = test()->from('/register')->post('/register', [
         'name' => 'Test User',
         'email' => 'test@empresa.com.br',
         'phone' => '1132654321',
@@ -92,5 +178,5 @@ test('registration rejects invalid cpf email and phone', function () {
     ]);
 
     $response->assertSessionHasErrors(['email', 'phone', 'cpf']);
-    $this->assertGuest();
+    test()->assertGuest();
 });

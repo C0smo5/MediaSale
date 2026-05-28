@@ -21,6 +21,10 @@ class RegisterVerificationController extends Controller
     {
         $user = $request->user();
 
+        if ($user->needsProfileCompletion()) {
+            return redirect()->route('register.complete-profile');
+        }
+
         if ($user->isFullyVerified()) {
             if (! $user->hasSelectedPlan()) {
                 return redirect()->route('register.plan');

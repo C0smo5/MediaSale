@@ -14,16 +14,10 @@ Route::get('/', function () {
     $user = Auth::user();
 
     if ($user) {
-        if (! $user->isFullyVerified()) {
-            return redirect()->route('register.verify');
-        }
+        $nextStep = $user->nextRegistrationStep();
 
-        if (! $user->hasSelectedPlan()) {
-            return redirect()->route('register.plan');
-        }
-
-        if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
-            return redirect()->route('register.payment');
+        if ($nextStep !== null) {
+            return redirect()->route($nextStep);
         }
 
         return redirect()->route('dashboard');

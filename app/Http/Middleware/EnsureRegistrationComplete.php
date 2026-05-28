@@ -19,25 +19,43 @@ class EnsureRegistrationComplete
             return $next($request);
         }
 
-        if (! $user->isFullyVerified()) {
-            if (! $request->routeIs('register.verify', 'register.verify.*', 'register.cancel', 'logout', 'plans')) {
-                return redirect()->route('register.verify');
-            }
+        $nextStep = $user->nextRegistrationStep();
 
-            return $next($request);
-        }
+        if ($nextStep !== null) {
+            $allowed = match ($nextStep) {
+                'register.complete-profile' => [
+                    'register.complete-profile',
+                    'register.complete-profile.store',
+                    'register.cancel',
+                    'logout',
+                    'plans',
+                ],
+                'register.verify' => [
+                    'register.verify',
+                    'register.verify.*',
+                    'register.cancel',
+                    'logout',
+                    'plans',
+                ],
+                'register.plan' => [
+                    'register.plan',
+                    'register.plan.*',
+                    'register.cancel',
+                    'logout',
+                    'plans',
+                ],
+                'register.payment' => [
+                    'register.payment',
+                    'register.payment.skip',
+                    'register.cancel',
+                    'logout',
+                    'plans',
+                ],
+                default => [],
+            };
 
-        if (! $user->hasSelectedPlan()) {
-            if (! $request->routeIs('register.plan', 'register.plan.*', 'register.cancel', 'logout', 'plans')) {
-                return redirect()->route('register.plan');
-            }
-
-            return $next($request);
-        }
-
-        if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
-            if (! $request->routeIs('register.payment', 'register.payment.skip', 'register.cancel', 'logout', 'plans')) {
-                return redirect()->route('register.payment');
+            if (! $request->routeIs(...$allowed)) {
+                return redirect()->route($nextStep);
             }
         }
 

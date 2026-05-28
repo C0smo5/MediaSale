@@ -25,6 +25,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'google_id',
+        'avatar',
         'phone',
         'cpf',
         'password',
@@ -110,14 +112,40 @@ class User extends Authenticatable
 
     public function isRegistrationComplete(): bool
     {
-        if (! $this->isFullyVerified() || ! $this->hasSelectedPlan()) {
-            return false;
+        return $this->nextRegistrationStep() === null;
+    }
+
+    public function usesGoogleAuth(): bool
+    {
+        return $this->google_id !== null;
+    }
+
+    public function needsProfileCompletion(): bool
+    {
+        return blank($this->phone) || blank($this->cpf);
+    }
+
+    /**
+     * Próxima etapa do cadastro ou null se já concluído.
+     */
+    public function nextRegistrationStep(): ?string
+    {
+        if ($this->needsProfileCompletion()) {
+            return 'register.complete-profile';
+        }
+
+        if (! $this->isFullyVerified()) {
+            return 'register.verify';
+        }
+
+        if (! $this->hasSelectedPlan()) {
+            return 'register.plan';
         }
 
         if ($this->planRequiresPayment() && ! $this->hasCompletedPayment()) {
-            return false;
+            return 'register.payment';
         }
 
-        return true;
+        return null;
     }
 }

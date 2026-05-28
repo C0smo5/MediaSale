@@ -32,16 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('dashboard');
             }
 
-            if (! $user->isFullyVerified()) {
-                return route('register.verify');
-            }
+            $nextStep = $user->nextRegistrationStep();
 
-            if (! $user->hasSelectedPlan()) {
-                return route('register.plan');
-            }
-
-            if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
-                return route('register.payment');
+            if ($nextStep !== null) {
+                return route($nextStep);
             }
 
             return route('dashboard');

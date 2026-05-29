@@ -2,13 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 
 const ChatSidebarContext = createContext(null);
 
-export const chatHistoryItems = [
-    { id: 1, title: 'Notebook para escritorio', date: 'Hoje' },
-    { id: 2, title: 'iPhone 15 vs Samsung S24', date: 'Ontem' },
-    { id: 3, title: 'Monitor gamer 144Hz', date: '19/05' },
-    { id: 4, title: 'SSD Kingston 480GB', date: '15/05' },
-    { id: 5, title: 'Teclado mecanico barato', date: '12/05' },
-];
+export const chatHistoryItems = [];
 
 export function ChatSidebarProvider({ children }) {
     const [activeChat, setActiveChat] = useState(null);

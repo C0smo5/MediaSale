@@ -30,17 +30,14 @@ const ChevronIcon = () => (
     </svg>
 );
 
-const accountStats = [
-    { label: 'Membro desde', value: 'Jan 2025' },
-    { label: 'Analises realizadas', value: '47' },
-    { label: 'Economia gerada', value: 'R$ 3.240' },
-    { label: 'Lojas favoritas', value: '8' },
-];
-
 export default function Edit({ mustVerifyEmail, status, initialSection = 'info', linkedAccounts }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const [activeSection, setActiveSection] = useState(initialSection);
+
+    const memberSince = user.created_at
+        ? new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date(user.created_at))
+        : '—';
 
     const currentPlanKey = user.plan_key ?? 'trial';
     const currentPlanBilling = user.plan_billing ?? 'monthly';
@@ -429,19 +426,15 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                     <div className="flex flex-col gap-6 lg:flex-row">
                         <aside className="w-full shrink-0 lg:w-72">
                             <div
-                                className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border p-4 lg:grid-cols-1"
+                                className="mb-4 rounded-2xl border p-4"
                                 style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
                             >
-                                {accountStats.map((item) => (
-                                    <div key={item.label} className="min-w-0">
-                                        <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#6b6b8a' }}>
-                                            {item.label}
-                                        </p>
-                                        <p className="mt-0.5 truncate text-sm font-bold" style={{ color: '#1a1040' }}>
-                                            {item.value}
-                                        </p>
-                                    </div>
-                                ))}
+                                <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#6b6b8a' }}>
+                                    Membro desde
+                                </p>
+                                <p className="mt-0.5 truncate text-sm font-bold" style={{ color: '#1a1040' }}>
+                                    {memberSince}
+                                </p>
                             </div>
 
                             <nav

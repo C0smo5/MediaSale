@@ -1,7 +1,7 @@
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
 import { useForm, usePage } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 const GoogleIcon = () => (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
@@ -36,6 +36,32 @@ function StyledPasswordInput({ id, value, onChange, autoComplete, refProp }) {
             onChange={onChange}
             autoComplete={autoComplete}
             className="orin-input py-2.5"
+        />
+    );
+}
+
+function GoogleAvatar({ src }) {
+    const [failed, setFailed] = useState(false);
+
+    if (!src || failed) {
+        return (
+            <span
+                className="flex h-10 w-10 items-center justify-center rounded-full border bg-white"
+                style={{ borderColor: 'rgba(124,58,237,0.18)' }}
+            >
+                <GoogleIcon />
+            </span>
+        );
+    }
+
+    return (
+        <img
+            src={src}
+            alt=""
+            referrerPolicy="no-referrer"
+            className="h-10 w-10 rounded-full border object-cover"
+            style={{ borderColor: 'rgba(124,58,237,0.18)' }}
+            onError={() => setFailed(true)}
         />
     );
 }
@@ -124,13 +150,8 @@ export default function LinkedAccountsForm({ linkedAccounts, status, className =
                 <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.12)' }}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            {linkedAccounts.hasGoogle && linkedAccounts.googleAvatar ? (
-                                <img
-                                    src={linkedAccounts.googleAvatar}
-                                    alt=""
-                                    className="h-10 w-10 rounded-full border object-cover"
-                                    style={{ borderColor: 'rgba(124,58,237,0.18)' }}
-                                />
+                            {linkedAccounts.hasGoogle ? (
+                                <GoogleAvatar src={linkedAccounts.googleAvatar} />
                             ) : (
                                 <span
                                     className="flex h-10 w-10 items-center justify-center rounded-full border bg-white"
@@ -160,27 +181,46 @@ export default function LinkedAccountsForm({ linkedAccounts, status, className =
                         )}
                     </div>
 
-                    {linkedAccounts.canUnlinkGoogle && (
-                        <form onSubmit={unlinkGoogle} className="mt-4 space-y-3 border-t pt-4" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
-                            <p className="text-xs" style={{ color: '#6b6b8a' }}>
-                                Para desconectar, confirme sua senha Orin.
-                            </p>
-                            <StyledPasswordInput
-                                id="unlink_password"
-                                value={unlinkForm.data.password}
-                                onChange={(event) => unlinkForm.setData('password', event.target.value)}
-                                autoComplete="current-password"
-                            />
-                            <InputError message={unlinkForm.errors.password} />
-                            <button
-                                type="submit"
-                                disabled={unlinkForm.processing}
-                                className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-red-50 disabled:opacity-60"
-                                style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#dc2626' }}
-                            >
-                                {unlinkForm.processing ? 'Desconectando...' : 'Desconectar Google'}
-                            </button>
-                        </form>
+                    {linkedAccounts.hasGoogle && (
+                        <div className="mt-4 space-y-3 border-t pt-4" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                            {linkedAccounts.canUnlinkGoogle ? (
+                                <form onSubmit={unlinkGoogle} className="space-y-3">
+                                    <p className="text-xs" style={{ color: '#6b6b8a' }}>
+                                        Para desconectar, confirme sua senha Orin.
+                                    </p>
+                                    <StyledPasswordInput
+                                        id="unlink_password"
+                                        value={unlinkForm.data.password}
+                                        onChange={(event) => unlinkForm.setData('password', event.target.value)}
+                                        autoComplete="current-password"
+                                    />
+                                    <InputError message={unlinkForm.errors.password} />
+                                    <button
+                                        type="submit"
+                                        disabled={unlinkForm.processing}
+                                        className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-red-50 disabled:opacity-60"
+                                        style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#dc2626' }}
+                                    >
+                                        {unlinkForm.processing ? 'Desconectando...' : 'Desconectar Google'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <div className="space-y-2">
+                                    <p className="text-xs leading-relaxed" style={{ color: '#6b6b8a' }}>
+                                        Para desconectar o Google, crie primeiro uma senha Orin na secao abaixo.
+                                        Assim voce continua acessando a conta com e-mail e senha.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        disabled
+                                        className="cursor-not-allowed rounded-xl border px-4 py-2 text-sm font-semibold opacity-50"
+                                        style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#dc2626' }}
+                                    >
+                                        Desconectar Google
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 

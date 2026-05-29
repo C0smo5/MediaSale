@@ -90,6 +90,22 @@ test('google user can create orin password', function () {
     expect($user->accountType())->toBe('linked');
 });
 
+test('google-only user cannot unlink google without orin password', function () {
+    $user = User::factory()->create([
+        'google_id' => 'google-only-unlink',
+        'verify_account' => true,
+    ]);
+    $user->forceFill(['password' => null])->saveQuietly();
+
+    expect($user->canUnlinkGoogle())->toBeFalse();
+
+    $this->actingAs($user)
+        ->delete(route('profile.google.unlink'), [
+            'password' => 'any-password',
+        ])
+        ->assertSessionHasErrors('password');
+});
+
 test('linked user can unlink google with orin password', function () {
     $user = User::factory()->create([
         'email' => 'unlink@gmail.com',

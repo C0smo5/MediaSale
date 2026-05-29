@@ -11,7 +11,7 @@ const MailCheckIcon = () => (
     </svg>
 );
 
-export default function VerifyEmail({ status }) {
+export default function VerifyEmail() {
     const { post, processing } = useForm({});
 
     const submit = (e) => {
@@ -30,15 +30,6 @@ export default function VerifyEmail({ status }) {
                 title="Confirme seu e-mail"
                 description="Antes de continuar, confirme seu endereco de e-mail clicando no link enviado para sua caixa de entrada."
             />
-
-            {status === 'verification-link-sent' && (
-                <div
-                    className="auth-alert font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    Um novo link de verificacao foi enviado para o e-mail cadastrado.
-                </div>
-            )}
 
             <form onSubmit={submit}>
                 <PrimaryButton className="w-full" disabled={processing}>

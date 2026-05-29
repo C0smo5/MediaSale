@@ -155,7 +155,6 @@ export default function RegisterVerify({
     maskedPhone,
     resendCooldown,
     debugSmsCode,
-    status,
 }) {
     const emailForm = useForm({ code: '' });
     const phoneForm = useForm({ code: '' });
@@ -242,27 +241,6 @@ export default function RegisterVerify({
                     />
                 </div>
             </div>
-
-            {status === 'email-verified' && (
-                <div className="auth-alert" style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}>
-                    E-mail verificado com sucesso.
-                </div>
-            )}
-            {status === 'phone-verified' && (
-                <div className="auth-alert" style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}>
-                    Telefone verificado com sucesso.
-                </div>
-            )}
-            {status === 'email-code-sent' && (
-                <div className="auth-alert" style={{ backgroundColor: '#eff6ff', borderColor: 'rgba(37,99,235,0.22)', color: '#2563eb' }}>
-                    Novo codigo enviado para o e-mail.
-                </div>
-            )}
-            {status === 'phone-code-sent' && (
-                <div className="auth-alert" style={{ backgroundColor: '#eff6ff', borderColor: 'rgba(37,99,235,0.22)', color: '#2563eb' }}>
-                    Novo codigo enviado por SMS.
-                </div>
-            )}
 
             <AuthCardGrid>
                 <AuthCardCell>

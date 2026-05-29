@@ -14,6 +14,8 @@ class SubscriptionController extends Controller
 
     public function cancel(Request $request): RedirectResponse
     {
+        $this->authorize('plan.cancel');
+
         $this->planChangeService->clearPendingChange($request);
         $this->planChangeService->cancelSubscription($request->user());
 

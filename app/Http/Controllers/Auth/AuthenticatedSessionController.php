@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\Auth\TwoFactorService;
+use App\Services\Registration\RegistrationAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +34,17 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+
+        // If 2FA is active, park the user ID in session and redirect to challenge.
+        if ($user !== null && app(TwoFactorService::class)->isEnabled($user)) {
+            $request->session()->put('pending_2fa_user_id', $user->id);
+            $request->session()->put('pending_2fa_sms_fallback', (bool) $user->two_factor_sms_fallback);
+            Auth::logout();
+
+            return redirect()->route('two-factor.challenge');
+        }
+
         $request->session()->regenerate();
 
         $redirect = $request->input('redirect');
@@ -50,9 +63,15 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, RegistrationAccountService $registrationAccounts): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        $user = $request->user();
+
+        if ($user !== null && ! $user->hasVerifiedAccount()) {
+            $registrationAccounts->deleteIncompleteRegistration($user);
+        } else {
+            Auth::guard('web')->logout();
+        }
 
         $request->session()->invalidate();
 

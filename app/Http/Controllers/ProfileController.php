@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,6 +47,8 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        $this->authorize('update', $request->user());
+
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -62,6 +65,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->authorize('delete', $request->user());
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);
@@ -70,7 +75,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        User::destroy($user->getKey());
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

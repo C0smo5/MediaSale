@@ -29,7 +29,7 @@ function StyledInput({ id, type = 'text', value, onChange, autoComplete, isFocus
     );
 }
 
-export default function UpdateProfileInformationForm({ mustVerifyEmail, status, className = '' }) {
+export default function UpdateProfileInformationForm({ mustVerifyEmail, className = '' }) {
     const user = usePage().props.auth.user;
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
@@ -80,11 +80,6 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                                 Reenviar e-mail de verificacao
                             </Link>
                         </p>
-                        {status === 'verification-link-sent' && (
-                            <p className="mt-2 text-sm font-medium" style={{ color: '#059669' }}>
-                                Novo link enviado para seu e-mail.
-                            </p>
-                        )}
                     </div>
                 )}
 

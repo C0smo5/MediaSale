@@ -293,3 +293,76 @@ body {
     radial-gradient(ellipse 52% 42% at 0% 78%, rgba(201, 250, 232, 0.35) 0%, transparent 48%),
     linear-gradient(180deg, #e8e0f5 0%, #f0ebfa 28%, #f5f2fc 55%, #ede7f9 100%);
 }
+
+/* SweetAlert2 — tema Orin */
+.orin-swal-popup {
+  border-radius: 1rem !important;
+  border: 1px solid rgba(124, 58, 237, 0.18) !important;
+  box-shadow: 0 16px 48px rgba(124, 58, 237, 0.18) !important;
+  padding: 1.5rem 1.25rem 1.25rem !important;
+}
+
+.orin-swal-title {
+  color: #1a1040 !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+}
+
+.orin-swal-text {
+  color: #6b6b8a !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.orin-swal-actions {
+  gap: 0.75rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.orin-swal-btn {
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  margin: 0 !important;
+}
+
+.orin-swal-btn--confirm {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+}
+
+.orin-swal-btn--confirm:hover {
+  opacity: 0.92;
+}
+
+.orin-swal-btn--cancel {
+  background: #f8f7ff !important;
+  border: 1px solid rgba(124, 58, 237, 0.2) !important;
+  color: #6b6b8a !important;
+}
+
+.orin-swal-btn--cancel:hover {
+  background: #f0eeff !important;
+}
+
+div:where(.swal2-icon).swal2-warning {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
+}
+
+div:where(.swal2-icon).swal2-success {
+  border-color: #059669 !important;
+  color: #059669 !important;
+}
+
+div:where(.swal2-icon).swal2-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+div:where(.swal2-icon).swal2-info {
+  border-color: #7c3aed !important;
+  color: #7c3aed !important;
+}

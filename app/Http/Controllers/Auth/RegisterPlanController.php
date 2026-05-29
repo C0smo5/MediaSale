@@ -49,11 +49,10 @@ class RegisterPlanController extends Controller
         $validated = $request->validated();
 
         $user = $request->user();
-        $user->fill([
+        $user->forceFill([
             'plan_key' => $validated['plan_key'],
             'plan_billing' => $validated['plan_billing'],
-        ]);
-        $user->save();
+        ])->save();
 
         $user->refresh();
 

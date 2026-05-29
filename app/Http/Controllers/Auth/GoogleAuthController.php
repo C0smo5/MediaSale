@@ -30,11 +30,8 @@ class GoogleAuthController extends Controller
 
     public function linkRedirect(Request $request): RedirectResponse
     {
-        if (! $request->user()->canLinkGoogle()) {
-            return redirect()
-                ->route('profile.edit', ['section' => 'info'])
-                ->withErrors(['google' => 'Sua conta ja esta conectada ao Google.']);
-        }
+        $this->authorize('linkGoogle', $request->user());
+
 
         session([
             'google_oauth_intent' => 'link',
@@ -74,6 +71,8 @@ class GoogleAuthController extends Controller
 
     public function unlink(Request $request): RedirectResponse
     {
+        $this->authorize('unlinkGoogle', $request->user());
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);
@@ -131,15 +130,18 @@ class GoogleAuthController extends Controller
             $user->forceFill($this->googleProfileAttributes($googleUser, $user))->save();
         } else {
             $relinkingCompletedOrinAccount = false;
-            $user = User::create([
+            $user = (new User([
                 'name' => $googleUser->getName() ?? 'Usuario',
                 'email' => $email,
+            ]))->forceFill([
                 ...$this->googleProfileAttributes($googleUser),
                 'password' => null,
             ]);
+            $user->save();
         }
 
         Auth::login($user, true);
+        request()->session()->regenerate();
 
         if ($relinkingCompletedOrinAccount ?? false) {
             return redirect()

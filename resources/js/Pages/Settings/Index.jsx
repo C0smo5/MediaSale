@@ -1,9 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Checkbox from '@/Components/Checkbox';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link } from '@inertiajs/react';
+import { plansByKey } from '@/data/plans';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 const SettingsIcon = () => (
@@ -49,7 +49,7 @@ const implementationRecommendations = [
         items: [
             'Limite de analises por plano (middleware ou service)',
             'Lojas padrao por usuario para filtrar buscas',
-            'Historico real de conversas (substituir mock em ChatSidebarContext)',
+            'Historico real de conversas (API de chat)',
             'Parametros: profundidade da analise, idioma das respostas',
         ],
     },
@@ -96,7 +96,7 @@ const implementationRecommendations = [
         priority: 'Baixa',
         items: [
             'Allowlist de dominios de e-mail (config/registration.php)',
-            'SMS_DRIVER e SMS_MOCK_CODE apenas via .env',
+            'SMS_DRIVER apenas via .env',
             'Painel admin: usuarios, jobs falhos na fila',
         ],
     },
@@ -162,8 +162,10 @@ function PriorityBadge({ priority }) {
 }
 
 export default function SettingsIndex() {
+    const { auth } = usePage().props;
+    const user = auth.user;
+    const currentPlan = plansByKey[user.plan_key ?? 'trial'] ?? plansByKey.trial;
     const [activeSection, setActiveSection] = useState('general');
-    const [savedHint, setSavedHint] = useState(false);
 
     const [prefs, setPrefs] = useState({
         locale: 'pt-BR',
@@ -185,12 +187,6 @@ export default function SettingsIndex() {
 
     const updatePref = (key, value) => {
         setPrefs((current) => ({ ...current, [key]: value }));
-        setSavedHint(false);
-    };
-
-    const handleMockSave = () => {
-        setSavedHint(true);
-        setTimeout(() => setSavedHint(false), 3000);
     };
 
     const renderSection = () => {
@@ -419,9 +415,9 @@ export default function SettingsIndex() {
                     >
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                             {[
-                                { label: 'Analises no mes', value: '12 / 100', pct: 12 },
-                                { label: 'Lojas monitoradas', value: '8 / 50', pct: 16 },
-                                { label: 'Historico', value: '90 dias', pct: null },
+                                { label: 'Analises no mes', value: '0 / ' + currentPlan.limits.consultsPerMonth },
+                                { label: 'Imagens no mes', value: '0 / ' + currentPlan.limits.imagesPerMonth },
+                                { label: 'Copy no mes', value: '0 / ' + currentPlan.limits.copyPerMonth },
                             ].map((stat) => (
                                 <div
                                     key={stat.label}
@@ -434,20 +430,12 @@ export default function SettingsIndex() {
                                     <p className="mt-1 text-lg font-bold" style={{ color: '#7c3aed' }}>
                                         {stat.value}
                                     </p>
-                                    {stat.pct !== null && (
-                                        <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: '#ede9fe' }}>
-                                            <div
-                                                className="h-full rounded-full"
-                                                style={{ width: `${stat.pct}%`, background: 'linear-gradient(90deg,#7c3aed,#a855f7)' }}
-                                            />
-                                        </div>
-                                    )}
                                 </div>
                             ))}
                         </div>
                         <p className="text-sm" style={{ color: '#6b6b8a' }}>
-                            Plano atual: <strong style={{ color: '#7c3aed' }}>Pro</strong>. Dados mockados — conectar
-                            billing e contadores reais no backend.
+                            Plano atual: <strong style={{ color: '#7c3aed' }}>{currentPlan.name}</strong>.
+                            Contadores de uso serao exibidos quando as analises estiverem disponiveis.
                         </p>
                         <Link
                             href={route('profile.edit', { section: 'plans' })}
@@ -566,25 +554,8 @@ export default function SettingsIndex() {
                                 </h1>
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: '#6b6b8a' }}>
-                                Preferencias da conta e guia do que implementar no backend. Alteracoes ainda nao sao
-                                salvas no servidor.
+                                Preferencias da conta. Alteracoes ainda nao sao salvas no servidor.
                             </p>
-                        </div>
-                        <div className="flex flex-shrink-0 flex-col gap-2 sm:items-end">
-                            <span
-                                className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
-                                style={{ backgroundColor: '#fff7ed', color: '#ea580c', border: '1px solid rgba(234,88,12,0.25)' }}
-                            >
-                                Somente front-end
-                            </span>
-                            {savedHint && (
-                                <span
-                                    className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
-                                    style={{ backgroundColor: '#ecfdf5', color: '#059669' }}
-                                >
-                                    Preferencias simuladas (local)
-                                </span>
-                            )}
                         </div>
                     </div>
 
@@ -621,17 +592,6 @@ export default function SettingsIndex() {
 
                         <div className="min-w-0 flex-1 space-y-4">
                             {renderSection()}
-
-                            {activeSection !== 'roadmap' && (
-                                <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
-                                    <p className="text-xs sm:mr-auto sm:self-center" style={{ color: '#6b6b8a' }}>
-                                        O botao abaixo apenas simula salvamento no navegador.
-                                    </p>
-                                    <PrimaryButton type="button" onClick={handleMockSave} className="w-full sm:w-auto">
-                                        Salvar preferencias (demo)
-                                    </PrimaryButton>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

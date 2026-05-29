@@ -398,7 +398,12 @@ export default function AuthenticatedLayout({ children }) {
                             >
                                 Recentes
                             </p>
-                            {chatHistoryItems.map((chat) => (
+                            {chatHistoryItems.length === 0 ? (
+                                <p className="px-2 py-3 text-[12px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                                    Nenhuma conversa ainda
+                                </p>
+                            ) : (
+                                chatHistoryItems.map((chat) => (
                                 <button
                                     key={chat.id}
                                     type="button"
@@ -429,7 +434,8 @@ export default function AuthenticatedLayout({ children }) {
                                         {chat.date}
                                     </p>
                                 </button>
-                            ))}
+                            ))
+                            )}
                         </div>
                     </div>
                 )}

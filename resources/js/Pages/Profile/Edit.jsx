@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
+import LinkedAccountsForm from './Partials/LinkedAccountsForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import { ComparisonTable } from '@/Components/plans/PlansPicker';
 import { plans as unifiedPlans, plansByKey, getPlanPrice, formatBrl } from '@/data/plans';
@@ -29,17 +30,14 @@ const ChevronIcon = () => (
     </svg>
 );
 
-const accountStats = [
-    { label: 'Membro desde', value: 'Jan 2025' },
-    { label: 'Analises realizadas', value: '47' },
-    { label: 'Economia gerada', value: 'R$ 3.240' },
-    { label: 'Lojas favoritas', value: '8' },
-];
-
-export default function Edit({ mustVerifyEmail, status, initialSection = 'info' }) {
+export default function Edit({ mustVerifyEmail, status, initialSection = 'info', linkedAccounts }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const [activeSection, setActiveSection] = useState(initialSection);
+
+    const memberSince = user.created_at
+        ? new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date(user.created_at))
+        : '—';
 
     const currentPlanKey = user.plan_key ?? 'trial';
     const currentPlanBilling = user.plan_billing ?? 'monthly';
@@ -124,10 +122,18 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info' 
                 <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
                     <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
                         <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Dados pessoais</h2>
-                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>Atualize seu nome e endereco de e-mail</p>
+                        <p className="mt-0.5 text-sm" style={{ color: '#6b6b8a' }}>
+                            Atualize seus dados e conecte contas Orin e Google
+                        </p>
                     </div>
-                    <div className="px-6 py-6">
+                    <div className="space-y-8 px-6 py-6">
                         <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} status={status} />
+                        <div className="border-t pt-8" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                            <h3 className="mb-4 text-sm font-bold" style={{ color: '#1a1040' }}>
+                                Metodos de acesso
+                            </h3>
+                            <LinkedAccountsForm linkedAccounts={linkedAccounts} status={status} />
+                        </div>
                     </div>
                 </div>
             );
@@ -143,7 +149,22 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info' 
                         </p>
                     </div>
                     <div className="px-6 py-6">
-                        <UpdatePasswordForm />
+                        {linkedAccounts?.hasOrinPassword ? (
+                            <UpdatePasswordForm />
+                        ) : (
+                            <p className="text-sm" style={{ color: '#6b6b8a' }}>
+                                Crie uma senha Orin em{' '}
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveSection('info')}
+                                    className="font-semibold underline"
+                                    style={{ color: '#7c3aed' }}
+                                >
+                                    Dados pessoais
+                                </button>
+                                {' '}para habilitar login com e-mail e senha.
+                            </p>
+                        )}
                     </div>
                 </div>
             );
@@ -405,19 +426,15 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info' 
                     <div className="flex flex-col gap-6 lg:flex-row">
                         <aside className="w-full shrink-0 lg:w-72">
                             <div
-                                className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border p-4 lg:grid-cols-1"
+                                className="mb-4 rounded-2xl border p-4"
                                 style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
                             >
-                                {accountStats.map((item) => (
-                                    <div key={item.label} className="min-w-0">
-                                        <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#6b6b8a' }}>
-                                            {item.label}
-                                        </p>
-                                        <p className="mt-0.5 truncate text-sm font-bold" style={{ color: '#1a1040' }}>
-                                            {item.value}
-                                        </p>
-                                    </div>
-                                ))}
+                                <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#6b6b8a' }}>
+                                    Membro desde
+                                </p>
+                                <p className="mt-0.5 truncate text-sm font-bold" style={{ color: '#1a1040' }}>
+                                    {memberSince}
+                                </p>
                             </div>
 
                             <nav

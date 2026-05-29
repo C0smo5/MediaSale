@@ -26,6 +26,11 @@ return [
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
         'mock_code' => env('SMS_MOCK_CODE'),
+        'twilio' => [
+            'account_sid' => env('TWILIO_ACCOUNT_SID'),
+            'auth_token' => env('TWILIO_AUTH_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+        ],
     ],
 
     /*
@@ -37,5 +42,18 @@ return [
         'REGISTRATION_ALLOW_PAYMENT_SKIP',
         env('APP_DEBUG', false)
     ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Opcao 3 — Exclusao por inatividade (cadastro abandonado)
+    |--------------------------------------------------------------------------
+    |
+    | Ordem de exclusao de contas incompletas (verify_account = false):
+    | 1. Cancelar cadastro → imediato
+    | 2. Logout / sair → imediato
+    | 3. Sem atividade por este tempo → purge automatico (scheduler + web)
+    |
+    */
+    'inactivity_minutes' => (int) env('REGISTRATION_INACTIVITY_MINUTES', 1),
 
 ];

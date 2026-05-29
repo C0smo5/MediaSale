@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Middleware\EnsureRegistrationComplete;
+use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\TouchRegistrationActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,11 +19,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'registration.complete' => EnsureRegistrationComplete::class,
+            'two_factor.verified' => EnsureTwoFactorVerified::class,
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         ]);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            TouchRegistrationActivity::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
@@ -32,16 +37,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('dashboard');
             }
 
-            if (! $user->isFullyVerified()) {
-                return route('register.verify');
-            }
+            $nextStep = $user->nextRegistrationStep();
 
-            if (! $user->hasSelectedPlan()) {
-                return route('register.plan');
-            }
-
-            if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
-                return route('register.payment');
+            if ($nextStep !== null) {
+                return route($nextStep);
             }
 
             return route('dashboard');

@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { confirmAction } from '@/lib/swal';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import LinkedAccountsForm from './Partials/LinkedAccountsForm';
@@ -30,10 +31,143 @@ const ChevronIcon = () => (
     </svg>
 );
 
-export default function Edit({ mustVerifyEmail, status, initialSection = 'info', linkedAccounts }) {
+const LinkAccountIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+);
+
+const UserIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+    </svg>
+);
+
+const LockIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+);
+
+const PlansIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+        <line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+);
+
+const DangerIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+);
+
+function AccountLinkingBanner({ linkedAccounts, onCreateOrinPassword }) {
+    if (!linkedAccounts || linkedAccounts.accountType === 'linked') {
+        return null;
+    }
+
+    const isGoogleOnly = linkedAccounts.hasGoogle && !linkedAccounts.hasOrinPassword;
+
+    const actionButton = isGoogleOnly ? (
+        <button
+            type="button"
+            onClick={onCreateOrinPassword}
+            className="shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{
+                background: 'linear-gradient(135deg,#d97706,#f59e0b)',
+                boxShadow: '0 4px 14px rgba(245,158,11,0.25)',
+            }}
+        >
+            Criar senha Orin
+        </button>
+    ) : (
+        <a
+            href={route('auth.google.link')}
+            className="shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+            style={{
+                background: 'linear-gradient(135deg,#d97706,#f59e0b)',
+                boxShadow: '0 4px 14px rgba(245,158,11,0.25)',
+            }}
+        >
+            Conectar Google
+        </a>
+    );
+
+    return (
+        <div
+            className="flex flex-col gap-4 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+            style={{
+                backgroundColor: '#fffbeb',
+                borderColor: 'rgba(245,158,11,0.35)',
+            }}
+            role="status"
+        >
+            <div className="flex min-w-0 items-start gap-3">
+                <span
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: 'rgba(245,158,11,0.15)', color: '#d97706' }}
+                >
+                    <LinkAccountIcon />
+                </span>
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold" style={{ color: '#92400e' }}>
+                        Vincule outro metodo de acesso
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed" style={{ color: '#b45309' }}>
+                        {isGoogleOnly
+                            ? 'Sua conta usa apenas o Google. Crie uma senha Orin para recuperar o acesso, excluir a conta e desconectar o Google quando quiser.'
+                            : 'Sua conta usa apenas e-mail e senha. Conecte o Google para entrar com um clique e ter um metodo alternativo de login.'}
+                    </p>
+                </div>
+            </div>
+            {actionButton}
+        </div>
+    );
+}
+
+export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedAccounts }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const [activeSection, setActiveSection] = useState(initialSection);
+    const [pendingLinkingScroll, setPendingLinkingScroll] = useState(false);
+
+    const focusOrinPasswordField = () => {
+        document.getElementById('link_password')?.focus();
+    };
+
+    const scrollToOrinPassword = () => {
+        const target = document.getElementById('orin-password-link');
+
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.setTimeout(focusOrinPasswordField, 350);
+            return;
+        }
+
+        setPendingLinkingScroll(true);
+        setActiveSection('info');
+    };
+
+    useEffect(() => {
+        if (!pendingLinkingScroll || activeSection !== 'info') {
+            return;
+        }
+
+        setPendingLinkingScroll(false);
+
+        const timer = window.setTimeout(() => {
+            document.getElementById('orin-password-link')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.setTimeout(focusOrinPasswordField, 350);
+        }, 50);
+
+        return () => window.clearTimeout(timer);
+    }, [pendingLinkingScroll, activeSection]);
 
     const memberSince = user.created_at
         ? new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date(user.created_at))
@@ -51,11 +185,11 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
         .toUpperCase();
 
     const sections = [
-        { key: 'info', label: 'Dados pessoais', description: 'Nome e e-mail', iconLabel: 'DP' },
-        { key: 'password', label: 'Senha', description: 'Seguranca de acesso', iconLabel: 'SN' },
-        { key: 'settings', label: 'Configuracoes', description: 'Preferencias da conta', iconLabel: 'CF', isLink: true },
-        { key: 'plans', label: 'Planos', description: 'Assinatura e uso', iconLabel: 'PL' },
-        { key: 'danger', label: 'Zona de risco', description: 'Excluir conta', iconLabel: 'ZR', isDanger: true },
+        { key: 'info', label: 'Dados pessoais', description: 'Nome e e-mail', icon: UserIcon },
+        { key: 'password', label: 'Senha', description: 'Seguranca de acesso', icon: LockIcon },
+        { key: 'settings', label: 'Configuracoes', description: 'Preferencias da conta', icon: SettingsIcon, isLink: true },
+        { key: 'plans', label: 'Planos', description: 'Assinatura e uso', icon: PlansIcon },
+        { key: 'danger', label: 'Zona de risco', description: 'Excluir conta', icon: DangerIcon, isDanger: true },
     ];
 
     const renderContent = () => {
@@ -127,12 +261,12 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                         </p>
                     </div>
                     <div className="space-y-8 px-6 py-6">
-                        <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} status={status} />
-                        <div className="border-t pt-8" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
+                        <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} />
+                        <div id="account-linking" className="border-t pt-8 scroll-mt-24" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
                             <h3 className="mb-4 text-sm font-bold" style={{ color: '#1a1040' }}>
                                 Metodos de acesso
                             </h3>
-                            <LinkedAccountsForm linkedAccounts={linkedAccounts} status={status} />
+                            <LinkedAccountsForm linkedAccounts={linkedAccounts} />
                         </div>
                     </div>
                 </div>
@@ -173,30 +307,6 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
         if (activeSection === 'plans') {
             return (
                 <div className="space-y-4">
-                    {status === 'plan-updated' && (
-                        <div
-                            className="rounded-xl border px-4 py-3 text-sm font-medium"
-                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                        >
-                            Plano atualizado com sucesso.
-                        </div>
-                    )}
-                    {status === 'subscription-cancelled' && (
-                        <div
-                            className="rounded-xl border px-4 py-3 text-sm font-medium"
-                            style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                        >
-                            Assinatura cancelada. Voce voltou ao plano Trial.
-                        </div>
-                    )}
-                    {status === 'plan-change-cancelled' && (
-                        <div
-                            className="rounded-xl border px-4 py-3 text-sm font-medium"
-                            style={{ backgroundColor: '#f0eeff', borderColor: 'rgba(124,58,237,0.22)', color: '#7c3aed' }}
-                        >
-                            Alteracao de plano cancelada.
-                        </div>
-                    )}
                     <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
                         <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(124,58,237,0.10)' }}>
                             <h2 className="text-base font-bold" style={{ color: '#1a1040' }}>Escolha seu plano</h2>
@@ -325,12 +435,15 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                             </div>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    if (
-                                        window.confirm(
-                                            'Cancelar sua assinatura e voltar ao plano Trial? Esta acao e imediata.',
-                                        )
-                                    ) {
+                                onClick={async () => {
+                                    const confirmed = await confirmAction({
+                                        title: 'Cancelar assinatura?',
+                                        text: 'Voce voltara imediatamente ao plano Trial gratuito. Esta acao e imediata.',
+                                        confirmText: 'Sim, cancelar',
+                                        icon: 'warning',
+                                    });
+
+                                    if (confirmed) {
                                         router.post(route('subscription.cancel'));
                                     }
                                 }}
@@ -423,6 +536,11 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                         </div>
                     </div>
 
+                    <AccountLinkingBanner
+                        linkedAccounts={linkedAccounts}
+                        onCreateOrinPassword={scrollToOrinPassword}
+                    />
+
                     <div className="flex flex-col gap-6 lg:flex-row">
                         <aside className="w-full shrink-0 lg:w-72">
                             <div
@@ -446,6 +564,7 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                                 </p>
                                 {sections.map((section, index) => {
                                     const isActive = activeSection === section.key;
+                                    const SectionIcon = section.icon;
 
                                     if (section.isLink) {
                                         return (
@@ -460,10 +579,10 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                                                 }}
                                             >
                                                 <span
-                                                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+                                                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
                                                     style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
                                                 >
-                                                    {section.iconLabel}
+                                                    <SectionIcon />
                                                 </span>
                                                 <span className="min-w-0 flex-1">
                                                     <span className="block">{section.label}</span>
@@ -489,7 +608,7 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                                             }}
                                         >
                                             <span
-                                                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+                                                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
                                                 style={{
                                                     backgroundColor: isActive
                                                         ? 'rgba(124,58,237,0.15)'
@@ -499,7 +618,7 @@ export default function Edit({ mustVerifyEmail, status, initialSection = 'info',
                                                     color: isActive ? '#7c3aed' : section.isDanger ? '#ea580c' : '#6b6b8a',
                                                 }}
                                             >
-                                                {section.iconLabel}
+                                                <SectionIcon />
                                             </span>
                                             <span className="min-w-0 flex-1">
                                                 <span className="block">{section.label}</span>

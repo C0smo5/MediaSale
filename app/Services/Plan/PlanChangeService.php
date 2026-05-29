@@ -77,24 +77,21 @@ class PlanChangeService
 
         $requiresPayment = $user->planRequiresPaymentForKey($pending['plan_key']);
 
-        $user->fill([
+        $user->forceFill([
             'plan_key' => $pending['plan_key'],
             'plan_billing' => $pending['plan_billing'],
             'payment_completed' => $requiresPayment,
-        ]);
-
-        $user->save();
+        ])->save();
 
         $this->clearPendingChange($request);
     }
 
     public function cancelSubscription(User $user): void
     {
-        $user->fill([
+        $user->forceFill([
             'plan_key' => 'trial',
             'plan_billing' => 'monthly',
             'payment_completed' => false,
-        ]);
-        $user->save();
+        ])->save();
     }
 }

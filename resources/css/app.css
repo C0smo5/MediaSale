@@ -238,6 +238,50 @@ body {
       gap: 1.25rem;
     }
   }
+
+  /* Texto digitado preto; placeholder cinza; autofill do navegador */
+  .orin-input {
+    @apply box-border min-w-0 max-w-full w-full rounded-xl border border-[rgba(124,58,237,0.18)] bg-[#f8f7ff] px-4 py-3 text-base shadow-sm outline-none transition-all duration-200 focus:border-[#7c3aed] focus:ring-4 focus:ring-[rgba(124,58,237,0.10)] sm:text-sm;
+    color: #000000;
+    -webkit-text-fill-color: #000000;
+    caret-color: #000000;
+  }
+
+  .orin-input::placeholder {
+    color: #8a83a8;
+    opacity: 1;
+  }
+
+  .orin-input:-webkit-autofill,
+  .orin-input:-webkit-autofill:hover,
+  .orin-input:-webkit-autofill:focus,
+  .orin-input:-webkit-autofill:active {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    caret-color: #000000;
+    -webkit-box-shadow: 0 0 0 1000px #f8f7ff inset !important;
+    box-shadow: 0 0 0 1000px #f8f7ff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .orin-input--danger {
+    @apply border-orange-300 focus:border-orange-500 focus:ring-orange-100;
+  }
+
+  .auth-form input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+  .auth-form textarea,
+  .auth-form select {
+    color: #000000;
+    -webkit-text-fill-color: #000000;
+    caret-color: #000000;
+  }
+
+  .auth-form input:not([type='checkbox']):not([type='radio']):not([type='hidden'])::placeholder,
+  .auth-form textarea::placeholder {
+    color: #8a83a8;
+    -webkit-text-fill-color: #8a83a8;
+    opacity: 1;
+  }
 }
 
 /* Fundo geral: predominância lilás / lavanda, pouco branco “plano” */
@@ -248,4 +292,77 @@ body {
     radial-gradient(ellipse 58% 48% at 100% 18%, rgba(213, 199, 255, 0.45) 0%, transparent 52%),
     radial-gradient(ellipse 52% 42% at 0% 78%, rgba(201, 250, 232, 0.35) 0%, transparent 48%),
     linear-gradient(180deg, #e8e0f5 0%, #f0ebfa 28%, #f5f2fc 55%, #ede7f9 100%);
+}
+
+/* SweetAlert2 — tema Orin */
+.orin-swal-popup {
+  border-radius: 1rem !important;
+  border: 1px solid rgba(124, 58, 237, 0.18) !important;
+  box-shadow: 0 16px 48px rgba(124, 58, 237, 0.18) !important;
+  padding: 1.5rem 1.25rem 1.25rem !important;
+}
+
+.orin-swal-title {
+  color: #1a1040 !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+}
+
+.orin-swal-text {
+  color: #6b6b8a !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.orin-swal-actions {
+  gap: 0.75rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.orin-swal-btn {
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  margin: 0 !important;
+}
+
+.orin-swal-btn--confirm {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+}
+
+.orin-swal-btn--confirm:hover {
+  opacity: 0.92;
+}
+
+.orin-swal-btn--cancel {
+  background: #f8f7ff !important;
+  border: 1px solid rgba(124, 58, 237, 0.2) !important;
+  color: #6b6b8a !important;
+}
+
+.orin-swal-btn--cancel:hover {
+  background: #f0eeff !important;
+}
+
+div:where(.swal2-icon).swal2-warning {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
+}
+
+div:where(.swal2-icon).swal2-success {
+  border-color: #059669 !important;
+  color: #059669 !important;
+}
+
+div:where(.swal2-icon).swal2-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+div:where(.swal2-icon).swal2-info {
+  border-color: #7c3aed !important;
+  color: #7c3aed !important;
 }

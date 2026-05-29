@@ -1,5 +1,6 @@
 import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
 import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
+import GoogleAuthButton from '@/Components/Auth/GoogleAuthButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -16,7 +17,7 @@ const SignupIcon = () => (
     </svg>
 );
 
-export default function Register() {
+export default function Register({ errors: pageErrors = {} }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -44,6 +45,17 @@ export default function Register() {
                 title="Criar sua conta"
                 description="Informe seus dados para iniciar. Em seguida voce confirma e-mail e telefone e, por ultimo, escolhe o plano."
             />
+
+            <GoogleAuthButton error={pageErrors.google} />
+
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t" style={{ borderColor: 'rgba(124,58,237,0.15)' }} />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase tracking-wider">
+                    <span className="bg-[#f8f7ff] px-3 text-gray-500">ou</span>
+                </div>
+            </div>
 
             <form onSubmit={submit} className="auth-form">
                 <div>

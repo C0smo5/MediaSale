@@ -34,6 +34,8 @@ class UserFactory extends Factory
             'plan_key' => 'pro',
             'plan_billing' => 'monthly',
             'payment_completed' => true,
+            'verify_account' => true,
+            'registration_last_activity_at' => null,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
@@ -60,6 +62,8 @@ class UserFactory extends Factory
             'phone_verified_at' => null,
             'plan_key' => null,
             'plan_billing' => null,
+            'verify_account' => false,
+            'registration_last_activity_at' => now(),
         ]);
     }
 
@@ -73,6 +77,8 @@ class UserFactory extends Factory
             'phone_verified_at' => null,
             'plan_key' => 'starter',
             'plan_billing' => 'monthly',
+            'verify_account' => false,
+            'registration_last_activity_at' => now(),
         ]);
     }
 
@@ -86,6 +92,8 @@ class UserFactory extends Factory
             'phone_verified_at' => now(),
             'plan_key' => null,
             'plan_billing' => null,
+            'verify_account' => false,
+            'registration_last_activity_at' => now(),
         ]);
     }
 
@@ -100,6 +108,8 @@ class UserFactory extends Factory
             'plan_key' => 'starter',
             'plan_billing' => 'monthly',
             'payment_completed' => false,
+            'verify_account' => false,
+            'registration_last_activity_at' => now(),
         ]);
     }
 }

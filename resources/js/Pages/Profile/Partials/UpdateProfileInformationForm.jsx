@@ -24,21 +24,12 @@ function StyledInput({ id, type = 'text', value, onChange, autoComplete, isFocus
             autoComplete={autoComplete}
             required={required}
             autoFocus={isFocused}
-            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
-            style={{ backgroundColor: '#f8f7ff', borderColor: 'rgba(124,58,237,0.20)', color: '#1a1040' }}
-            onFocus={(event) => {
-                event.target.style.borderColor = '#7c3aed';
-                event.target.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.10)';
-            }}
-            onBlur={(event) => {
-                event.target.style.borderColor = 'rgba(124,58,237,0.20)';
-                event.target.style.boxShadow = 'none';
-            }}
+            className="orin-input py-2.5"
         />
     );
 }
 
-export default function UpdateProfileInformationForm({ mustVerifyEmail, status, className = '' }) {
+export default function UpdateProfileInformationForm({ mustVerifyEmail, className = '' }) {
     const user = usePage().props.auth.user;
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
@@ -89,11 +80,6 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, status, 
                                 Reenviar e-mail de verificacao
                             </Link>
                         </p>
-                        {status === 'verification-link-sent' && (
-                            <p className="mt-2 text-sm font-medium" style={{ color: '#059669' }}>
-                                Novo link enviado para seu e-mail.
-                            </p>
-                        )}
                     </div>
                 )}
 

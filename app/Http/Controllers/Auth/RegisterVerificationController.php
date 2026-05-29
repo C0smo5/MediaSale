@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\VerificationCode;
+use App\Services\Registration\RegistrationAccountService;
 use App\Services\Verification\VerificationCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,25 +17,32 @@ class RegisterVerificationController extends Controller
 {
     public function __construct(
         private readonly VerificationCodeService $verificationCodeService,
+        private readonly RegistrationAccountService $registrationAccounts,
     ) {}
 
     public function show(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
 
+        if ($user->needsProfileCompletion()) {
+            return redirect()->route('register.complete-profile');
+        }
+
         if ($user->isFullyVerified()) {
-            if (! $user->hasSelectedPlan()) {
-                return redirect()->route('register.plan');
+            $nextRoute = $user->nextRegistrationStep();
+
+            if ($nextRoute !== null) {
+                return redirect()->route($nextRoute);
             }
 
-            if ($user->planRequiresPayment() && ! $user->hasCompletedPayment()) {
-                return redirect()->route('register.payment');
-            }
+            $this->registrationAccounts->markAccountVerified($user);
 
             return redirect()->route('dashboard');
         }
 
         return Inertia::render('Auth/RegisterVerify', [
+            'accountType' => $user->accountType(),
+            'accountTypeLabel' => $user->accountTypeLabel(),
             'emailVerified' => $user->hasVerifiedEmail(),
             'phoneVerified' => $user->hasVerifiedPhone(),
             'maskedEmail' => $this->maskEmail($user->email),
@@ -60,7 +69,7 @@ class RegisterVerificationController extends Controller
         );
 
         if ($request->user()->fresh()->isFullyVerified()) {
-            return redirect()->route('register.plan');
+            return $this->redirectAfterVerification($request->user());
         }
 
         return redirect()
@@ -81,12 +90,27 @@ class RegisterVerificationController extends Controller
         );
 
         if ($request->user()->fresh()->isFullyVerified()) {
-            return redirect()->route('register.plan');
+            return $this->redirectAfterVerification($request->user());
         }
 
         return redirect()
             ->route('register.verify')
             ->with('status', 'phone-verified');
+    }
+
+    private function redirectAfterVerification(User $user): RedirectResponse
+    {
+        $user = $user->fresh();
+
+        $nextRoute = $user->nextRegistrationStep();
+
+        if ($nextRoute !== null) {
+            return redirect()->route($nextRoute);
+        }
+
+        $this->registrationAccounts->markAccountVerified($user);
+
+        return redirect()->route('dashboard');
     }
 
     public function resendEmail(Request $request): RedirectResponse

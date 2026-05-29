@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterStepOneRequest;
 use App\Models\User;
+use App\Services\Registration\RegistrationAccountService;
 use App\Services\Verification\VerificationCodeService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,7 @@ class RegisteredUserController extends Controller
 {
     public function __construct(
         private readonly VerificationCodeService $verificationCodeService,
+        private readonly RegistrationAccountService $registrationAccounts,
     ) {}
 
     /**
@@ -44,6 +46,8 @@ class RegisteredUserController extends Controller
         $this->verificationCodeService->sendAll($user);
 
         Auth::login($user);
+
+        $this->registrationAccounts->touchActivity($user);
 
         return redirect()->route('register.verify');
     }

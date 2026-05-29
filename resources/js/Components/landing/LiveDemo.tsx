@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimateOnScroll } from './Ui/AnimateOnScroll';
+import { DemoResultThumb } from './Ui/DemoResultThumb';
 import { RatingStars } from './Ui/RatingStars';
 import { SearchIcon, SparklesIcon, ZapIcon, CheckIcon, XIcon } from './Icons/Icons';
 import { demoQuestions, storeColors } from './data/demoQuestions';
@@ -89,7 +90,7 @@ export const LiveDemo: React.FC = () => {
             <span className="text-xs font-semibold text-brand uppercase tracking-wider">Demo Interativa</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight mb-4">Veja a IA em ação</h2>
-          <p className="text-lg text-muted max-w-xl mx-auto">Clique em uma pergunta e assista a IA buscar, filtrar e encontrar os melhores produtos em tempo real</p>
+          <p className="text-lg text-muted max-w-xl mx-auto">Clique em uma pergunta e assista a IA cruzar o mercado e entregar insights para sua venda em tempo real</p>
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={100}>
@@ -133,7 +134,7 @@ export const LiveDemo: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="relative flex items-center justify-center"><div className="w-2.5 h-2.5 bg-brand rounded-full" /><div className="absolute w-2.5 h-2.5 bg-brand rounded-full animate-ping" /></div>
-                    <span className="text-sm font-semibold text-brand">Analisando lojas...</span>
+                    <span className="text-sm font-semibold text-brand">Cruzando marketplaces...</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {scannedStores.map((store, i) => (
@@ -154,15 +155,15 @@ export const LiveDemo: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2.5 h-2.5 bg-emerald-brand rounded-full animate-pulse" />
-                    <span className="text-sm font-semibold text-emerald-brand">Filtrando {selectedQuestion.totalProducts} produtos...</span>
+                    <span className="text-sm font-semibold text-emerald-brand">Analisando {selectedQuestion.totalProducts} anúncios...</span>
                   </div>
                   <div className="w-full h-3 bg-surface-alt rounded-full overflow-hidden">
                     <div className="h-full gradient-brand rounded-full" style={{ width: `${filterProgress}%`, transition: 'width 0.15s ease-out' }} />
                   </div>
                   <div className="flex items-center gap-4 mt-4 text-xs text-muted">
-                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Preço comparado</span>
-                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Avaliações verificadas</span>
-                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Compatibilidade checada</span>
+                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Preços da concorrência</span>
+                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Posicionamento mapeado</span>
+                    <span className="flex items-center gap-1"><CheckIcon className="w-3 h-3 text-emerald-brand" /> Margem estimada</span>
                   </div>
                 </div>
               )}
@@ -171,7 +172,7 @@ export const LiveDemo: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <CheckIcon className="w-5 h-5 text-emerald-brand" />
-                    <span className="text-sm font-semibold text-emerald-brand">{selectedQuestion.results.length} melhores resultados encontrados</span>
+                    <span className="text-sm font-semibold text-emerald-brand">{selectedQuestion.results.length} insights para sua venda</span>
                   </div>
                   <div className="space-y-3">
                     {selectedQuestion.results.slice(0, visibleResults).map((result, i) => (
@@ -182,11 +183,16 @@ export const LiveDemo: React.FC = () => {
                         style={{ animationDelay: `${i * 100}ms` }}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${result.isBest ? 'bg-emerald-brand/10 text-emerald-brand' : 'bg-purple-soft text-brand'}`}>{result.match}%</div>
+                          <DemoResultThumb
+                            src={result.image}
+                            alt={result.imageAlt}
+                            match={result.match}
+                            highlight={result.isBest}
+                          />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-semibold text-ink">{result.name}</span>
-                              {result.isBest && <span className="animate-badge-pop inline-flex items-center gap-1 bg-emerald-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Melhor Escolha</span>}
+                              {result.isBest && <span className="animate-badge-pop inline-flex items-center gap-1 bg-emerald-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Recomendado</span>}
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               <RatingStars rating={result.rating} />

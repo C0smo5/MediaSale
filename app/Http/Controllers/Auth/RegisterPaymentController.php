@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Plan\PlanPricingService;
+use App\Services\Registration\RegistrationAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,10 +13,10 @@ use Inertia\Response;
 class RegisterPaymentController extends Controller
 {
     public function __construct(
-        private readonly PlanPricingService $pricing,
+        private readonly RegistrationAccountService $registrationAccounts,
     ) {}
 
-    public function show(Request $request): Response|RedirectResponse
+    public function show(Request $request, PlanPricingService $pricing): Response|RedirectResponse
     {
         $user = $request->user();
 
@@ -31,7 +32,7 @@ class RegisterPaymentController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $charge = $this->pricing->calculateUpgradeCharge(
+        $charge = $pricing->calculateUpgradeCharge(
             'trial',
             'monthly',
             $user->plan_key,
@@ -63,6 +64,21 @@ class RegisterPaymentController extends Controller
         }
 
         $user->forceFill(['payment_completed' => true])->save();
+        $this->registrationAccounts->markAccountVerified($user);
+
+        return redirect()->route('dashboard');
+    }
+
+    public function complete(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isFullyVerified() || ! $user->hasSelectedPlan() || ! $user->planRequiresPayment()) {
+            return redirect()->route('dashboard');
+        }
+
+        $user->forceFill(['payment_completed' => true])->save();
+        $this->registrationAccounts->markAccountVerified($user);
 
         return redirect()->route('dashboard');
     }

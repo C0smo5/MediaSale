@@ -1,6 +1,6 @@
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
 const GoogleIcon = () => (
@@ -66,9 +66,7 @@ function GoogleAvatar({ src }) {
     );
 }
 
-export default function LinkedAccountsForm({ linkedAccounts, status, className = '' }) {
-    const { errors } = usePage().props;
-    const googleError = errors.google;
+export default function LinkedAccountsForm({ linkedAccounts, className = '' }) {
     const passwordInput = useRef(null);
 
     const passwordForm = useForm({
@@ -114,37 +112,6 @@ export default function LinkedAccountsForm({ linkedAccounts, status, className =
                     <AccountBadge connected={linkedAccounts.hasGoogle} label="Google" />
                 </div>
             </div>
-
-            {status === 'google-linked' && (
-                <div
-                    className="mb-4 rounded-xl border px-4 py-3 text-sm font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    Conta Google conectada com sucesso.
-                </div>
-            )}
-            {status === 'google-unlinked' && (
-                <div
-                    className="mb-4 rounded-xl border px-4 py-3 text-sm font-medium"
-                    style={{ backgroundColor: '#f0eeff', borderColor: 'rgba(124,58,237,0.22)', color: '#7c3aed' }}
-                >
-                    Conta Google desconectada.
-                </div>
-            )}
-            {status === 'orin-password-created' && (
-                <div
-                    className="mb-4 rounded-xl border px-4 py-3 text-sm font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    Senha Orin criada. Agora voce pode entrar com e-mail e senha.
-                </div>
-            )}
-
-            {googleError && (
-                <div className="mb-4">
-                    <InputError message={googleError} />
-                </div>
-            )}
 
             <div className="space-y-6">
                 <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.12)' }}>
@@ -224,7 +191,12 @@ export default function LinkedAccountsForm({ linkedAccounts, status, className =
                     )}
                 </div>
 
-                <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.12)' }}>
+                <div
+                    id="orin-password-link"
+                    tabIndex={-1}
+                    className="rounded-xl border p-4 scroll-mt-24 outline-none focus:ring-2 focus:ring-[#f59e0b]/40"
+                    style={{ borderColor: 'rgba(124,58,237,0.12)' }}
+                >
                     <h3 className="text-sm font-semibold" style={{ color: '#1a1040' }}>
                         Orin (e-mail e senha)
                     </h3>

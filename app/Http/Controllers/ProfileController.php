@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,10 +23,22 @@ class ProfileController extends Controller
         $allowedSections = ['info', 'password', 'plans', 'danger'];
         $initialSection = in_array($section, $allowedSections, true) ? $section : 'info';
 
+        $user = $request->user();
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'initialSection' => $initialSection,
+            'linkedAccounts' => [
+                'accountType' => $user->accountType(),
+                'accountTypeLabel' => $user->accountTypeLabel(),
+                'hasGoogle' => $user->hasLinkedGoogle(),
+                'hasOrinPassword' => $user->hasOrinCredentials(),
+                'canLinkGoogle' => $user->canLinkGoogle(),
+                'canUnlinkGoogle' => $user->canUnlinkGoogle(),
+                'canSetOrinPassword' => $user->canSetOrinPassword(),
+                'googleAvatar' => $user->avatar,
+            ],
         ]);
     }
 
@@ -34,6 +47,8 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        $this->authorize('update', $request->user());
+
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -50,6 +65,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->authorize('delete', $request->user());
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);
@@ -58,7 +75,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        User::destroy($user->getKey());
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

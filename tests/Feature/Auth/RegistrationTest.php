@@ -23,11 +23,13 @@ test('new users can register and are redirected to verification', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('register.verify', absolute: false));
 
-    $this->assertDatabaseHas('users', [
-        'email' => 'test@gmail.com',
-        'cpf' => '52998224725',
-        'phone' => '+5511987654321',
-        'email_verified_at' => null,
-        'phone_verified_at' => null,
-    ]);
+    // email is not encrypted, verify directly in the DB.
+    $this->assertDatabaseHas('users', ['email' => 'test@gmail.com']);
+
+    // cpf and phone are encrypted at rest; verify through the model.
+    $user = \App\Models\User::query()->where('email', 'test@gmail.com')->firstOrFail();
+    expect($user->cpf)->toBe('52998224725');
+    expect($user->phone)->toBe('+5511987654321');
+    expect($user->email_verified_at)->toBeNull();
+    expect($user->phone_verified_at)->toBeNull();
 });

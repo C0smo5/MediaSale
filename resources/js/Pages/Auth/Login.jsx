@@ -1,5 +1,6 @@
 import AuthFooterAction from '@/Components/Auth/AuthFooterAction';
 import AuthPageHeader from '@/Components/Auth/AuthPageHeader';
+import GoogleAuthButton from '@/Components/Auth/GoogleAuthButton';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -16,7 +17,7 @@ const LoginIcon = () => (
     </svg>
 );
 
-export default function Login({ status, canResetPassword, redirect: redirectTo = null }) {
+export default function Login({ canResetPassword, redirect: redirectTo = null, errors: serverErrors = {} }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -36,21 +37,23 @@ export default function Login({ status, canResetPassword, redirect: redirectTo =
         <GuestLayout>
             <Head title="Entrar" />
 
-            {status && (
-                <div
-                    className="auth-alert font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    {status}
-                </div>
-            )}
-
             <AuthPageHeader
                 icon={<LoginIcon />}
                 badge="Acesso"
                 title="Entrar na sua conta"
                 description="Continue para acessar suas analises, monitoramentos e oportunidades de compra."
             />
+
+            <GoogleAuthButton error={serverErrors.google} />
+
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t" style={{ borderColor: 'rgba(124,58,237,0.15)' }} />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase tracking-wider">
+                    <span className="bg-[#f8f7ff] px-3 text-gray-500">ou</span>
+                </div>
+            </div>
 
             <form onSubmit={submit} className="auth-form">
                 <div>

@@ -11,6 +11,32 @@ use Illuminate\Validation\Rules\Password;
 class PasswordController extends Controller
 {
     /**
+     * Create an Orin password for accounts that only use Google.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        if (! $user->canSetOrinPassword()) {
+            return back()->withErrors([
+                'password' => 'Sua conta Orin ja possui senha de acesso.',
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()
+            ->route('profile.edit', ['section' => 'info'])
+            ->with('status', 'orin-password-created');
+    }
+
+    /**
      * Update the user's password.
      */
     public function update(Request $request): RedirectResponse

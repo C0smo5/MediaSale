@@ -17,16 +17,7 @@ function StyledInput({ id, type = 'password', value, onChange, autoComplete, ref
                 onChange={onChange}
                 autoComplete={autoComplete}
                 placeholder={placeholder}
-                className="w-full rounded-xl border px-4 py-2.5 pr-10 text-sm outline-none transition-all duration-200"
-                style={{ backgroundColor: '#f8f7ff', borderColor: 'rgba(124,58,237,0.20)', color: '#1a1040' }}
-                onFocus={(event) => {
-                    event.target.style.borderColor = '#7c3aed';
-                    event.target.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.10)';
-                }}
-                onBlur={(event) => {
-                    event.target.style.borderColor = 'rgba(124,58,237,0.20)';
-                    event.target.style.boxShadow = 'none';
-                }}
+                className="orin-input py-2.5 pr-10"
             />
             {isPassword && (
                 <button

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\AccountProvider;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,6 +36,8 @@ class User extends Authenticatable
         'plan_key',
         'plan_billing',
         'payment_completed',
+        'verify_account',
+        'registration_last_activity_at',
     ];
 
     /**
@@ -58,8 +61,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'payment_completed' => 'boolean',
+            'verify_account' => 'boolean',
+            'registration_last_activity_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->verify_account && $user->registration_last_activity_at === null) {
+                $user->registration_last_activity_at = now();
+            }
+        });
     }
 
     public function verificationCodes(): HasMany
@@ -110,14 +124,91 @@ class User extends Authenticatable
         return (bool) $this->payment_completed;
     }
 
+    public function hasVerifiedAccount(): bool
+    {
+        return (bool) $this->verify_account;
+    }
+
     public function isRegistrationComplete(): bool
     {
-        return $this->nextRegistrationStep() === null;
+        return $this->hasVerifiedAccount();
+    }
+
+    /**
+     * Requisitos de cadastro concluidos (antes de marcar verify_account).
+     */
+    public function hasCompletedRegistrationRequirements(): bool
+    {
+        if ($this->needsProfileCompletion()) {
+            return false;
+        }
+
+        if (! $this->isFullyVerified()) {
+            return false;
+        }
+
+        if (! $this->hasSelectedPlan()) {
+            return false;
+        }
+
+        if ($this->planRequiresPayment() && ! $this->hasCompletedPayment()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasLinkedGoogle(): bool
+    {
+        return $this->google_id !== null;
     }
 
     public function usesGoogleAuth(): bool
     {
-        return $this->google_id !== null;
+        return $this->hasLinkedGoogle();
+    }
+
+    public function hasOrinCredentials(): bool
+    {
+        return filled($this->getRawOriginal('password'));
+    }
+
+    public function canLinkGoogle(): bool
+    {
+        return ! $this->hasLinkedGoogle();
+    }
+
+    public function canUnlinkGoogle(): bool
+    {
+        return $this->hasLinkedGoogle() && $this->hasOrinCredentials();
+    }
+
+    public function canSetOrinPassword(): bool
+    {
+        return ! $this->hasOrinCredentials();
+    }
+
+    public function accountProvider(): AccountProvider
+    {
+        if ($this->hasLinkedGoogle() && $this->hasOrinCredentials()) {
+            return AccountProvider::Linked;
+        }
+
+        if ($this->hasLinkedGoogle()) {
+            return AccountProvider::Google;
+        }
+
+        return AccountProvider::Orin;
+    }
+
+    public function accountType(): string
+    {
+        return $this->accountProvider()->value;
+    }
+
+    public function accountTypeLabel(): string
+    {
+        return $this->accountProvider()->label();
     }
 
     public function needsProfileCompletion(): bool
@@ -130,6 +221,19 @@ class User extends Authenticatable
      */
     public function nextRegistrationStep(): ?string
     {
+        if ($this->hasVerifiedAccount()) {
+            return null;
+        }
+
+        if ($this->usesGoogleAuth()) {
+            return $this->nextGoogleRegistrationStep();
+        }
+
+        return $this->nextOrinRegistrationStep();
+    }
+
+    private function nextOrinRegistrationStep(): ?string
+    {
         if ($this->needsProfileCompletion()) {
             return 'register.complete-profile';
         }
@@ -140,6 +244,27 @@ class User extends Authenticatable
 
         if (! $this->hasSelectedPlan()) {
             return 'register.plan';
+        }
+
+        if ($this->planRequiresPayment() && ! $this->hasCompletedPayment()) {
+            return 'register.payment';
+        }
+
+        return null;
+    }
+
+    private function nextGoogleRegistrationStep(): ?string
+    {
+        if (! $this->hasSelectedPlan()) {
+            return 'register.plan';
+        }
+
+        if ($this->needsProfileCompletion()) {
+            return 'register.complete-profile';
+        }
+
+        if (! $this->isFullyVerified()) {
+            return 'register.verify';
         }
 
         if ($this->planRequiresPayment() && ! $this->hasCompletedPayment()) {

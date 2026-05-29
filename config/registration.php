@@ -38,4 +38,15 @@ return [
         env('APP_DEBUG', false)
     ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Exclusao automatica de cadastros incompletos
+    |--------------------------------------------------------------------------
+    |
+    | Contas com verify_account = false sao removidas apos este tempo sem
+    | atividade nas etapas de cadastro (verificacao, plano, pagamento).
+    |
+    */
+    'inactivity_minutes' => (int) env('REGISTRATION_INACTIVITY_MINUTES', 1),
+
 ];

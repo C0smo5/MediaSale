@@ -17,7 +17,11 @@ function registerTestUser(): User
         'password_confirmation' => 'password',
     ])->assertRedirect(route('register.verify', absolute: false));
 
-    return User::query()->where('email', 'newuser@gmail.com')->firstOrFail();
+    $user = User::query()->where('email', 'newuser@gmail.com')->firstOrFail();
+
+    expect($user->verify_account)->toBeFalse();
+
+    return $user;
 }
 
 function completeRegistrationVerification(User $user): void
@@ -65,6 +69,7 @@ test('user completes registration with verification, plan selection and payment 
 
     $user->refresh();
 
+    expect($user->verify_account)->toBeFalse();
     expect($user->hasVerifiedEmail())->toBeTrue();
     expect($user->hasVerifiedPhone())->toBeTrue();
     expect($user->isFullyVerified())->toBeTrue();
@@ -81,6 +86,7 @@ test('trial plan skips payment and completes registration', function () {
 
     $user->refresh();
 
+    expect($user->verify_account)->toBeTrue();
     expect($user->isRegistrationComplete())->toBeTrue();
 
     test()->actingAs($user)
@@ -91,7 +97,7 @@ test('trial plan skips payment and completes registration', function () {
 test('dashboard is blocked until verification is complete', function () {
     $user = registerTestUser();
 
-    test()->actingAs($user)
+    test()->actingAs($user->fresh())
         ->get(route('dashboard'))
         ->assertRedirect(route('register.verify', absolute: false));
 });
@@ -100,7 +106,7 @@ test('dashboard is blocked until plan is selected', function () {
     $user = registerTestUser();
     completeRegistrationVerification($user);
 
-    test()->actingAs($user)
+    test()->actingAs($user->fresh())
         ->get(route('dashboard'))
         ->assertRedirect(route('register.plan', absolute: false));
 });
@@ -129,6 +135,7 @@ test('paid plan user can skip payment in debug to access dashboard', function ()
     $user->refresh();
 
     expect($user->hasCompletedPayment())->toBeTrue();
+    expect($user->verify_account)->toBeTrue();
     expect($user->isRegistrationComplete())->toBeTrue();
 
     test()->actingAs($user)

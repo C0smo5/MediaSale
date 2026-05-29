@@ -13,7 +13,7 @@ class RegisterCancellationController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isRegistrationComplete()) {
+        if ($user->hasVerifiedAccount()) {
             abort(403);
         }
 

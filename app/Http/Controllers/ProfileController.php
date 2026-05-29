@@ -22,10 +22,22 @@ class ProfileController extends Controller
         $allowedSections = ['info', 'password', 'plans', 'danger'];
         $initialSection = in_array($section, $allowedSections, true) ? $section : 'info';
 
+        $user = $request->user();
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'initialSection' => $initialSection,
+            'linkedAccounts' => [
+                'accountType' => $user->accountType(),
+                'accountTypeLabel' => $user->accountTypeLabel(),
+                'hasGoogle' => $user->hasLinkedGoogle(),
+                'hasOrinPassword' => $user->hasOrinCredentials(),
+                'canLinkGoogle' => $user->canLinkGoogle(),
+                'canUnlinkGoogle' => $user->canUnlinkGoogle(),
+                'canSetOrinPassword' => $user->canSetOrinPassword(),
+                'googleAvatar' => $user->avatar,
+            ],
         ]);
     }
 

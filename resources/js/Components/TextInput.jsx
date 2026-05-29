@@ -20,10 +20,7 @@ export default forwardRef(function TextInput(
         <input
             {...props}
             type={type}
-            className={
-                'box-border min-w-0 max-w-full w-full rounded-xl border border-[rgba(124,58,237,0.18)] bg-[#f8f7ff] px-4 py-3 text-base text-[#1a1040] shadow-sm outline-none transition-all duration-200 placeholder:text-[#8a83a8] focus:border-[#7c3aed] focus:ring-4 focus:ring-[rgba(124,58,237,0.10)] sm:text-sm ' +
-                className
-            }
+            className={`orin-input ${className}`.trim()}
             ref={localRef}
         />
     );

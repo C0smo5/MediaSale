@@ -27,6 +27,8 @@ class RegisterCompleteProfileController extends Controller
         }
 
         return Inertia::render('Auth/RegisterCompleteProfile', [
+            'accountType' => $user->accountType(),
+            'accountTypeLabel' => $user->accountTypeLabel(),
             'status' => session('status'),
         ]);
     }

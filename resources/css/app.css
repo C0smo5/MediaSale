@@ -238,6 +238,50 @@ body {
       gap: 1.25rem;
     }
   }
+
+  /* Texto digitado preto; placeholder cinza; autofill do navegador */
+  .orin-input {
+    @apply box-border min-w-0 max-w-full w-full rounded-xl border border-[rgba(124,58,237,0.18)] bg-[#f8f7ff] px-4 py-3 text-base shadow-sm outline-none transition-all duration-200 focus:border-[#7c3aed] focus:ring-4 focus:ring-[rgba(124,58,237,0.10)] sm:text-sm;
+    color: #000000;
+    -webkit-text-fill-color: #000000;
+    caret-color: #000000;
+  }
+
+  .orin-input::placeholder {
+    color: #8a83a8;
+    opacity: 1;
+  }
+
+  .orin-input:-webkit-autofill,
+  .orin-input:-webkit-autofill:hover,
+  .orin-input:-webkit-autofill:focus,
+  .orin-input:-webkit-autofill:active {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    caret-color: #000000;
+    -webkit-box-shadow: 0 0 0 1000px #f8f7ff inset !important;
+    box-shadow: 0 0 0 1000px #f8f7ff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .orin-input--danger {
+    @apply border-orange-300 focus:border-orange-500 focus:ring-orange-100;
+  }
+
+  .auth-form input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+  .auth-form textarea,
+  .auth-form select {
+    color: #000000;
+    -webkit-text-fill-color: #000000;
+    caret-color: #000000;
+  }
+
+  .auth-form input:not([type='checkbox']):not([type='radio']):not([type='hidden'])::placeholder,
+  .auth-form textarea::placeholder {
+    color: #8a83a8;
+    -webkit-text-fill-color: #8a83a8;
+    opacity: 1;
+  }
 }
 
 /* Fundo geral: predominância lilás / lavanda, pouco branco “plano” */

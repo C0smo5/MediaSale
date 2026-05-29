@@ -75,16 +75,7 @@ export default function DeleteUserForm({ className = '' }) {
                             value={data.password}
                             onChange={(event) => setData('password', event.target.value)}
                             placeholder="••••••••"
-                            className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
-                            style={{ backgroundColor: '#f8f7ff', borderColor: 'rgba(234,88,12,0.30)', color: '#1a1040' }}
-                            onFocus={(event) => {
-                                event.target.style.borderColor = '#ea580c';
-                                event.target.style.boxShadow = '0 0 0 3px rgba(234,88,12,0.10)';
-                            }}
-                            onBlur={(event) => {
-                                event.target.style.borderColor = 'rgba(234,88,12,0.30)';
-                                event.target.style.boxShadow = 'none';
-                            }}
+                            className="orin-input orin-input--danger py-2.5"
                         />
                         <InputError message={errors.password} className="mt-1" />
                     </div>

@@ -48,8 +48,8 @@ export const Pricing: React.FC = () => {
           <div className="inline-flex items-center gap-2 bg-purple-soft border border-brand-default rounded-full px-4 py-1.5 mb-4">
             <span className="text-xs font-semibold text-brand uppercase tracking-wider">Planos</span>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight mb-4">Escolha o plano ideal</h2>
-          <p className="text-lg text-muted max-w-xl mx-auto mb-8">Comece grátis e evolua conforme sua necessidade. Cancele quando quiser.</p>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight mb-4">Planos para quem vende online</h2>
+          <p className="text-lg text-muted max-w-xl mx-auto mb-8">Do teste à operação em escala — consultas, copy, tendências e alertas conforme o seu volume de vendas.</p>
 
           <div className="inline-flex items-center gap-3 bg-purple-soft/80 rounded-2xl p-1.5 border border-brand-default shadow-md shadow-brand/10">
             <button onClick={() => setIsAnnual(false)} className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${!isAnnual ? 'gradient-brand text-white shadow-md shadow-brand/20' : 'text-muted hover:text-ink'}`}>Mensal</button>

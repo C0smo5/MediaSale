@@ -9,7 +9,7 @@ export const Footer: React.FC = () => (
           <div className="mb-4">
             <BrandLogo href="/" nameClassName="text-xl text-white" iconClassName="h-9 w-9 rounded-xl" />
           </div>
-          <p className="text-sm text-white/40 leading-relaxed max-w-xs">Orin: a IA que encontra os melhores produtos para você em todas as lojas online.</p>
+          <p className="text-sm text-white/40 leading-relaxed max-w-xs">Orin: a IA que ajuda vendedores online a monitorar mercado, precificar e vender melhor.</p>
         </div>
         <div>
           <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-4">Produto</h4>

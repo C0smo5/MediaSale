@@ -4,9 +4,9 @@ import { MessageSquareIcon, FilterIcon, TargetIcon } from './Icons/Icons';
 
 export const HowItWorks: React.FC = () => {
   const steps = [
-    { icon: <MessageSquareIcon className="w-7 h-7" />, title: 'Pergunte', description: 'Descreva o que procura com suas próprias palavras. A IA entende contexto, preferências e orçamento.', bg: 'bg-purple-soft', border: 'border-brand-default' },
-    { icon: <FilterIcon className="w-7 h-7" />, title: 'IA Filtra', description: 'Nossa IA busca em dezenas de lojas, analisa preços, avaliações e compatibilidade em tempo real.', bg: 'bg-green-soft', border: 'border-emerald-default' },
-    { icon: <TargetIcon className="w-7 h-7" />, title: 'Receba os Melhores', description: 'Veja apenas os resultados que realmente valem a pena, com compatibilidade e economia comprovadas.', bg: 'bg-orange-soft', border: 'border-orange-default' },
+    { icon: <MessageSquareIcon className="w-7 h-7" />, title: 'Descreva seu produto', description: 'Informe o que você vende, o nicho ou a dúvida — preço, concorrência, copy ou tendência. A IA entende o contexto do seu negócio.', bg: 'bg-purple-soft', border: 'border-brand-default' },
+    { icon: <FilterIcon className="w-7 h-7" />, title: 'IA cruza o mercado', description: 'Cruzamos anúncios e preços em marketplaces e lojas online, analisando concorrentes e oportunidades em tempo real.', bg: 'bg-green-soft', border: 'border-emerald-default' },
+    { icon: <TargetIcon className="w-7 h-7" />, title: 'Venda com mais clareza', description: 'Receba preço sugerido, posicionamento frente à concorrência e insights para anunciar — prontos para aplicar na operação.', bg: 'bg-orange-soft', border: 'border-orange-default' },
   ];
 
   return (
@@ -17,7 +17,7 @@ export const HowItWorks: React.FC = () => {
             <span className="text-xs font-semibold text-brand uppercase tracking-wider">Como Funciona</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink tracking-tight mb-4">Simples como deve ser</h2>
-          <p className="text-lg text-muted max-w-2xl mx-auto">Três passos para encontrar o produto ideal sem perder tempo navegando entre lojas</p>
+          <p className="text-lg text-muted max-w-2xl mx-auto">Três passos para precificar, posicionar e decidir mais rápido — sem planilhas e sem adivinhação</p>
         </AnimateOnScroll>
 
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12 relative">

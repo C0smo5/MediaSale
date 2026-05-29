@@ -31,8 +31,26 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'auth' => [
-                'user' => $request->user(),
+            'auth' => fn () => $this->authPayload($request),
+        ];
+    }
+
+    /**
+     * @return array{user: array<string, mixed>|null}
+     */
+    private function authPayload(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return ['user' => null];
+        }
+
+        return [
+            'user' => [
+                ...$user->toArray(),
+                'account_type' => $user->accountType(),
+                'account_type_label' => $user->accountTypeLabel(),
             ],
         ];
     }

@@ -17,12 +17,12 @@ use App\Http\Controllers\Auth\RegisterVerificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->name('auth.google.callback');
+
 Route::middleware('guest')->group(function () {
     Route::get('auth/google', [GoogleAuthController::class, 'redirect'])
         ->name('auth.google');
-
-    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
-        ->name('auth.google.callback');
 
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
@@ -63,6 +63,9 @@ Route::middleware('auth')->group(function () {
     Route::post('register/payment/skip', [RegisterPaymentController::class, 'skipForTesting'])
         ->name('register.payment.skip');
 
+    Route::post('register/payment/complete', [RegisterPaymentController::class, 'complete'])
+        ->name('register.payment.complete');
+
     Route::get('register/complete-profile', [RegisterCompleteProfileController::class, 'show'])
         ->name('register.complete-profile');
 
@@ -101,6 +104,15 @@ Route::middleware('auth')->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    Route::post('profile/password/create', [PasswordController::class, 'store'])
+        ->name('profile.password.create');
+
+    Route::get('auth/google/link', [GoogleAuthController::class, 'linkRedirect'])
+        ->name('auth.google.link');
+
+    Route::delete('profile/google', [GoogleAuthController::class, 'unlink'])
+        ->name('profile.google.unlink');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');

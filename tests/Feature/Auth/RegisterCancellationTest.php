@@ -29,6 +29,7 @@ test('completed registration cannot cancel via register cancel route', function 
     $user = User::factory()->create([
         'plan_key' => 'trial',
         'plan_billing' => 'monthly',
+        'verify_account' => true,
     ]);
 
     $this->actingAs($user)

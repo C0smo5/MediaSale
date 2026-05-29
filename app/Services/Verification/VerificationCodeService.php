@@ -43,9 +43,36 @@ class VerificationCodeService
         $this->sendPhoneCode($user);
     }
 
+    public function sendTwoFactorSmsCode(User $user): string
+    {
+        $code = $this->createCode($user, VerificationCode::CHANNEL_TWO_FACTOR_SMS);
+
+        $this->smsGateway->send(
+            $user->phone,
+            'Seu código de verificação Orin: '.$code
+        );
+
+        return $code;
+    }
+
+    public function verifyTwoFactorSmsCode(User $user, string $code): bool
+    {
+        try {
+            return $this->verify($user, VerificationCode::CHANNEL_TWO_FACTOR_SMS, $code);
+        } catch (\Exception) {
+            return false;
+        }
+    }
+
     public function verify(User $user, string $channel, string $code): bool
     {
-        if (! in_array($channel, [VerificationCode::CHANNEL_EMAIL, VerificationCode::CHANNEL_PHONE], true)) {
+        $validChannels = [
+            VerificationCode::CHANNEL_EMAIL,
+            VerificationCode::CHANNEL_PHONE,
+            VerificationCode::CHANNEL_TWO_FACTOR_SMS,
+        ];
+
+        if (! in_array($channel, $validChannels, true)) {
             throw new InvalidArgumentException('Canal de verificacao invalido.');
         }
 

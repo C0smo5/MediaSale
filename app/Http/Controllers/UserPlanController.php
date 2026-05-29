@@ -17,6 +17,8 @@ class UserPlanController extends Controller
 
     public function store(UpdateUserPlanRequest $request): RedirectResponse
     {
+        $this->authorize('plan.upgrade');
+
         $validated = $request->validated();
         $user = $request->user();
 

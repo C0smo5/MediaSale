@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { confirmAction } from '@/lib/swal';
 import Checkbox from '@/Components/Checkbox';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import { plansByKey } from '@/data/plans';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 const SettingsIcon = () => (
@@ -13,15 +14,73 @@ const SettingsIcon = () => (
     </svg>
 );
 
+const GeneralIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+);
+
+const BellIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+);
+
+const ChatIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+);
+
+const StoreIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+);
+
+const ShieldIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);
+
+const PlanIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+        <line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+);
+
+const PrivacyIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+);
+
+const RoadmapIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <line x1="8" y1="6" x2="21" y2="6" />
+        <line x1="8" y1="12" x2="21" y2="12" />
+        <line x1="8" y1="18" x2="21" y2="18" />
+        <line x1="3" y1="6" x2="3.01" y2="6" />
+        <line x1="3" y1="12" x2="3.01" y2="12" />
+        <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+);
+
 const sections = [
-    { key: 'general', label: 'Geral', icon: 'GR' },
-    { key: 'notifications', label: 'Notificacoes', icon: 'NT' },
-    { key: 'chat', label: 'Chat e analises', icon: 'IA' },
-    { key: 'monitoring', label: 'Lojas', icon: 'LJ' },
-    { key: 'security', label: 'Seguranca', icon: 'SG' },
-    { key: 'plan', label: 'Plano e uso', icon: 'PL' },
-    { key: 'privacy', label: 'Privacidade', icon: 'PV' },
-    { key: 'roadmap', label: 'Recomendacoes', icon: 'RC' },
+    { key: 'general', label: 'Geral', icon: GeneralIcon },
+    { key: 'notifications', label: 'Notificacoes', icon: BellIcon },
+    { key: 'chat', label: 'Chat e analises', icon: ChatIcon },
+    { key: 'monitoring', label: 'Lojas', icon: StoreIcon },
+    { key: 'security', label: 'Seguranca', icon: ShieldIcon },
+    { key: 'plan', label: 'Plano e uso', icon: PlanIcon },
+    { key: 'privacy', label: 'Privacidade', icon: PrivacyIcon },
+    { key: 'roadmap', label: 'Recomendacoes', icon: RoadmapIcon },
 ];
 
 const implementationRecommendations = [
@@ -161,7 +220,134 @@ function PriorityBadge({ priority }) {
     );
 }
 
-export default function SettingsIndex() {
+function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSessions }) {
+    const [qrSvg, setQrSvg] = useState(null);
+    const [pendingSecret, setPendingSecret] = useState(null);
+    const [confirmProcessing, setConfirmProcessing] = useState(false);
+    const [code, setCode] = useState('');
+    const [codeError, setCodeError] = useState('');
+    const [recoveryCodes, setRecoveryCodes] = useState(null);
+
+    const startSetup = async () => {
+        setQrSvg(null);
+        setPendingSecret(null);
+        const res = await fetch(route('two-factor.setup'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '', Accept: 'application/json' } });
+        if (res.ok) {
+            const data = await res.json();
+            setQrSvg(data.qr_code_svg);
+            setPendingSecret(data.secret);
+        }
+    };
+
+    const confirmSetup = (e) => {
+        e.preventDefault();
+        setConfirmProcessing(true);
+        setCodeError('');
+        router.post(route('two-factor.confirm'), { code }, {
+            onError: (errs) => { setCodeError(errs.code ?? 'Código inválido.'); setConfirmProcessing(false); },
+            onSuccess: () => { setQrSvg(null); setPendingSecret(null); setConfirmProcessing(false); setCode(''); },
+        });
+    };
+
+    const loadRecoveryCodes = async () => {
+        const res = await fetch(route('two-factor.recovery-codes'), { headers: { Accept: 'application/json' } });
+        if (res.ok) setRecoveryCodes(await res.json().then(d => d.codes));
+    };
+
+    return (
+        <div className="space-y-4">
+            {/* 2FA */}
+            <SettingsCard title="Autenticacao em dois fatores (2FA)" description="Exige um codigo do app autenticador alem da senha.">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>{twoFactorEnabled ? '2FA ativo' : '2FA desativado'}</p>
+                        <p className="text-xs mt-0.5" style={{ color: '#6b6b8a' }}>{twoFactorEnabled ? 'Seu login esta protegido por TOTP.' : 'Adicione uma camada extra de segurança.'}</p>
+                    </div>
+                    {twoFactorEnabled ? (
+                        <form
+                            method="post"
+                            action={route('two-factor.disable')}
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                const confirmed = await confirmAction({
+                                    title: 'Desativar 2FA?',
+                                    text: 'Seu login voltara a exigir apenas e-mail e senha.',
+                                    confirmText: 'Desativar',
+                                    icon: 'warning',
+                                });
+
+                                if (confirmed) {
+                                    e.currentTarget.submit();
+                                }
+                            }}
+                        >
+                            <input type="hidden" name="_method" value="DELETE" />
+                            <input type="hidden" name="_token" value={document.querySelector('meta[name=csrf-token]')?.content ?? ''} />
+                            <button type="submit" className="rounded-xl border px-4 py-2 text-xs font-semibold" style={{ borderColor: 'rgba(234,88,12,0.3)', color: '#ea580c' }}>Desativar</button>
+                        </form>
+                    ) : (
+                        <button type="button" onClick={startSetup} className="rounded-xl border px-4 py-2 text-xs font-semibold" style={{ borderColor: 'rgba(124,58,237,0.3)', color: '#7c3aed' }}>Ativar</button>
+                    )}
+                </div>
+
+                {qrSvg && (
+                    <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.2)', backgroundColor: '#f8f7ff' }}>
+                        <p className="text-sm font-medium" style={{ color: '#1a1040' }}>Escaneie o QR code no seu app autenticador:</p>
+                        <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+                        {pendingSecret && <p className="break-all rounded bg-white px-3 py-2 text-xs font-mono" style={{ color: '#6b6b8a' }}>{pendingSecret}</p>}
+                        <form onSubmit={confirmSetup} className="flex gap-2">
+                            <input type="text" maxLength={6} inputMode="numeric" placeholder="Código de 6 dígitos" value={code} onChange={e => setCode(e.target.value)} className="orin-input flex-1 rounded-xl border px-3 py-2 text-sm" />
+                            <button type="submit" disabled={confirmProcessing} className="rounded-xl px-4 py-2 text-sm font-semibold text-white" style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}>Confirmar</button>
+                        </form>
+                        {codeError && <p className="text-xs" style={{ color: '#ef4444' }}>{codeError}</p>}
+                    </div>
+                )}
+
+                {twoFactorEnabled && (
+                    <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={loadRecoveryCodes} className="text-xs underline underline-offset-2" style={{ color: '#7c3aed' }}>Ver códigos de recuperação</button>
+                    </div>
+                )}
+                {recoveryCodes && (
+                    <div className="grid grid-cols-2 gap-2 rounded-xl border p-3" style={{ borderColor: 'rgba(124,58,237,0.15)', backgroundColor: '#f8f7ff' }}>
+                        {recoveryCodes.map((c) => <code key={c} className="rounded bg-white px-2 py-1 text-xs font-mono" style={{ color: '#1a1040' }}>{c}</code>)}
+                    </div>
+                )}
+            </SettingsCard>
+
+            {/* Active sessions */}
+            <SettingsCard title="Sessoes ativas" description="Dispositivos com sessao aberta. Encerre qualquer sessao suspeita.">
+                <div className="space-y-2">
+                    {activeSessions.map((s) => (
+                        <div key={s.id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: s.is_current ? 'rgba(124,58,237,0.3)' : 'rgba(124,58,237,0.12)', backgroundColor: s.is_current ? '#f0eeff' : '#f8f7ff' }}>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium truncate" style={{ color: '#1a1040' }}>{s.device} — {s.ip_address ?? 'IP desconhecido'}{s.is_current ? ' (esta sessao)' : ''}</p>
+                                <p className="text-xs mt-0.5 truncate" style={{ color: '#6b6b8a' }}>{s.last_activity_human}</p>
+                            </div>
+                            {!s.is_current && (
+                                <form method="post" action={route('sessions.destroy', s.id)}>
+                                    <input type="hidden" name="_method" value="DELETE" />
+                                    <input type="hidden" name="_token" value={document.querySelector('meta[name=csrf-token]')?.content ?? ''} />
+                                    <button type="submit" className="text-xs font-medium" style={{ color: '#ea580c' }}>Encerrar</button>
+                                </form>
+                            )}
+                        </div>
+                    ))}
+                    {activeSessions.length > 1 && (
+                        <form method="post" action={route('sessions.destroy-others')}>
+                            <input type="hidden" name="_method" value="DELETE" />
+                            <input type="hidden" name="_token" value={document.querySelector('meta[name=csrf-token]')?.content ?? ''} />
+                            <button type="submit" className="mt-1 text-xs font-semibold underline underline-offset-2" style={{ color: '#ea580c' }}>Encerrar todas as outras sessoes</button>
+                        </form>
+                    )}
+                    {activeSessions.length === 0 && <p className="text-sm" style={{ color: '#6b6b8a' }}>Nenhuma sessao ativa encontrada.</p>}
+                </div>
+            </SettingsCard>
+        </div>
+    );
+}
+
+export default function SettingsIndex({ settings = {}, activeSessions = [], twoFactorEnabled = false, twoFactorSmsFallback = false }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const currentPlan = plansByKey[user.plan_key ?? 'trial'] ?? plansByKey.trial;
@@ -366,46 +552,11 @@ export default function SettingsIndex() {
                 );
 
             case 'security':
-                return (
-                    <SettingsCard
-                        title="Seguranca e verificacao"
-                        description="Complementa o cadastro em duas etapas (e-mail + SMS OTP)."
-                    >
-                        <ToggleRow
-                            label="Alertar login em novo dispositivo"
-                            description="E-mail quando detectar sessao desconhecida."
-                            checked={prefs.sessionAlerts}
-                            onChange={(v) => updatePref('sessionAlerts', v)}
-                        />
-                        <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.12)', backgroundColor: '#f8f7ff' }}>
-                            <p className="text-sm font-semibold" style={{ color: '#1a1040' }}>
-                                Ja disponivel no projeto
-                            </p>
-                            <ul className="list-inside list-disc space-y-1 text-xs" style={{ color: '#6b6b8a' }}>
-                                <li>Verificacao de e-mail e telefone no cadastro (OTP)</li>
-                                <li>CPF, telefone e allowlist de e-mail publico</li>
-                                <li>Alteracao de senha no perfil</li>
-                            </ul>
-                        </div>
-                        <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'rgba(234,88,12,0.2)', backgroundColor: '#fff7ed' }}>
-                            <p className="text-sm font-semibold" style={{ color: '#ea580c' }}>
-                                Recomendado implementar
-                            </p>
-                            <ul className="list-inside list-disc space-y-1 text-xs" style={{ color: '#6b6b8a' }}>
-                                <li>Autenticacao em dois fatores (2FA)</li>
-                                <li>Lista de sessoes ativas com revogacao</li>
-                                <li>Confirmar senha antes de mudancas sensiveis</li>
-                            </ul>
-                        </div>
-                        <Link
-                            href={route('profile.edit')}
-                            className="inline-flex text-sm font-medium underline underline-offset-4"
-                            style={{ color: '#7c3aed' }}
-                        >
-                            Ir para senha e dados no perfil
-                        </Link>
-                    </SettingsCard>
-                );
+                return <SecuritySection
+                    twoFactorEnabled={twoFactorEnabled}
+                    twoFactorSmsFallback={twoFactorSmsFallback}
+                    activeSessions={activeSessions}
+                />;
 
             case 'plan':
                 return (
@@ -554,7 +705,7 @@ export default function SettingsIndex() {
                                 </h1>
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: '#6b6b8a' }}>
-                                Preferencias da conta. Alteracoes ainda nao sao salvas no servidor.
+                                Preferencias da conta.
                             </p>
                         </div>
                     </div>
@@ -564,7 +715,10 @@ export default function SettingsIndex() {
                             className="flex gap-2 overflow-x-auto pb-1 lg:w-56 lg:flex-shrink-0 lg:flex-col lg:overflow-visible lg:pb-0"
                             aria-label="Secoes de configuracao"
                         >
-                            {sections.map((section) => (
+                            {sections.map((section) => {
+                                const SectionIcon = section.icon;
+
+                                return (
                                 <button
                                     key={section.key}
                                     type="button"
@@ -577,17 +731,18 @@ export default function SettingsIndex() {
                                     }}
                                 >
                                     <span
-                                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-bold"
+                                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg"
                                         style={{
                                             backgroundColor: activeSection === section.key ? 'rgba(124,58,237,0.12)' : '#f8f7ff',
                                             color: activeSection === section.key ? '#7c3aed' : '#6b6b8a',
                                         }}
                                     >
-                                        {section.icon}
+                                        <SectionIcon />
                                     </span>
                                     <span className="whitespace-nowrap lg:whitespace-normal">{section.label}</span>
                                 </button>
-                            ))}
+                                );
+                            })}
                         </nav>
 
                         <div className="min-w-0 flex-1 space-y-4">

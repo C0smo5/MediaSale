@@ -13,7 +13,7 @@ const KeyIcon = () => (
     </svg>
 );
 
-export default function ForgotPassword({ status }) {
+export default function ForgotPassword() {
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
@@ -34,15 +34,6 @@ export default function ForgotPassword({ status }) {
                 title="Esqueceu sua senha?"
                 description="Informe seu e-mail e enviaremos um link para redefinir seu acesso com seguranca."
             />
-
-            {status && (
-                <div
-                    className="auth-alert font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    {status}
-                </div>
-            )}
 
             <form onSubmit={submit} className="auth-form">
                 <div>

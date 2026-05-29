@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureRegistrationComplete;
+use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TouchRegistrationActivity;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'registration.complete' => EnsureRegistrationComplete::class,
+            'two_factor.verified' => EnsureTwoFactorVerified::class,
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         ]);
 
         $middleware->web(append: [

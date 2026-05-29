@@ -4,6 +4,7 @@ namespace App\Services\Registration;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class RegistrationAccountService
 {
@@ -34,13 +35,30 @@ class RegistrationAccountService
         ])->save();
     }
 
-    public function purgeInactiveAccounts(): int
+    /**
+     * Opcao 1 e 2: exclusao imediata (cancelar cadastro ou logout).
+     */
+    public function deleteIncompleteRegistration(User $user): void
+    {
+        if ($user->hasVerifiedAccount()) {
+            return;
+        }
+
+        if (Auth::id() === $user->id) {
+            Auth::logout();
+        }
+
+        User::destroy($user->getKey());
+    }
+
+    /**
+     * Opcao 3: exclusao por inatividade (cadastro abandonado sem cancelar/sair).
+     */
+    public function purgeAbandonedIncompleteRegistrations(?int $exceptUserId = null): int
     {
         $cutoff = now()->subMinutes($this->inactivityMinutes());
 
-        $deleted = 0;
-
-        $users = User::query()
+        $query = User::query()
             ->where('verify_account', false)
             ->where(function ($query) use ($cutoff): void {
                 $query
@@ -50,20 +68,37 @@ class RegistrationAccountService
                             ->whereNull('registration_last_activity_at')
                             ->where('created_at', '<', $cutoff);
                     });
-            })
-            ->orderBy('id', 'asc')
-            ->get();
+            });
 
-        foreach ($users as $user) {
-            if (Auth::id() === $user->id) {
+        if ($exceptUserId !== null) {
+            $query->where('id', '!=', $exceptUserId);
+        }
+
+        $userIds = $query->orderBy('id', 'asc')->pluck('id');
+
+        $deleted = 0;
+
+        foreach ($userIds as $userId) {
+            if (Auth::id() === $userId) {
                 Auth::logout();
             }
 
-            User::destroy($user->id);
+            User::destroy($userId);
             $deleted++;
         }
 
         return $deleted;
+    }
+
+    public function maybePurgeAbandonedIncompleteRegistrations(?int $exceptUserId = null): int
+    {
+        $lockSeconds = max(30, min(60, $this->inactivityMinutes() * 30));
+
+        if (! Cache::add('registration:purge-abandoned-lock', true, $lockSeconds)) {
+            return 0;
+        }
+
+        return $this->purgeAbandonedIncompleteRegistrations($exceptUserId);
     }
 
     public function inactivityMinutes(): int

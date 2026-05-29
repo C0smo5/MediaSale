@@ -13,7 +13,7 @@ const ProfileIcon = () => (
     </svg>
 );
 
-export default function RegisterCompleteProfile({ status }) {
+export default function RegisterCompleteProfile() {
     const { data, setData, post, processing, errors } = useForm({
         phone: '',
         cpf: '',
@@ -34,12 +34,6 @@ export default function RegisterCompleteProfile({ status }) {
                 title="Complete seu perfil"
                 description="Informe telefone e CPF para continuar. Seu e-mail ja foi confirmado pelo Google."
             />
-
-            {status === 'phone-code-sent' && (
-                <div className="auth-alert mb-4 font-medium" style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}>
-                    Codigo enviado por SMS. Confira a proxima etapa.
-                </div>
-            )}
 
             <form onSubmit={submit} className="auth-form">
                 <div>

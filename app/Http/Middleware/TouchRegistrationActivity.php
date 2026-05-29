@@ -24,6 +24,9 @@ class TouchRegistrationActivity
             $this->registrationAccounts->touchActivity($user);
         }
 
+        // Opcao 3: so contas abandonadas ha mais de inactivity_minutes (nao cancelou nem saiu).
+        $this->registrationAccounts->maybePurgeAbandonedIncompleteRegistrations($user?->id);
+
         return $next($request);
     }
 }

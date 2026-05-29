@@ -9,11 +9,11 @@ class PurgeInactiveRegistrationsCommand extends Command
 {
     protected $signature = 'registration:purge-inactive';
 
-    protected $description = 'Remove contas com cadastro incompleto apos periodo de inatividade';
+    protected $description = 'Remove cadastros incompletos abandonados (opcao 3: inatividade)';
 
     public function handle(RegistrationAccountService $registrationAccounts): int
     {
-        $deleted = $registrationAccounts->purgeInactiveAccounts();
+        $deleted = $registrationAccounts->purgeAbandonedIncompleteRegistrations();
 
         if ($deleted > 0) {
             $this->info("Removidas {$deleted} conta(s) com cadastro incompleto.");

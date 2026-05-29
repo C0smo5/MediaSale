@@ -103,7 +103,7 @@ test('google-only user cannot unlink google without orin password', function () 
         ->delete(route('profile.google.unlink'), [
             'password' => 'any-password',
         ])
-        ->assertSessionHasErrors('password');
+        ->assertForbidden();
 });
 
 test('linked user can unlink google with orin password', function () {

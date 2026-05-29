@@ -17,7 +17,7 @@ const LoginIcon = () => (
     </svg>
 );
 
-export default function Login({ status, canResetPassword, redirect: redirectTo = null, errors: serverErrors = {} }) {
+export default function Login({ canResetPassword, redirect: redirectTo = null, errors: serverErrors = {} }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -36,15 +36,6 @@ export default function Login({ status, canResetPassword, redirect: redirectTo =
     return (
         <GuestLayout>
             <Head title="Entrar" />
-
-            {status && (
-                <div
-                    className="auth-alert font-medium"
-                    style={{ backgroundColor: '#ecfdf5', borderColor: 'rgba(5,150,105,0.22)', color: '#059669' }}
-                >
-                    {status}
-                </div>
-            )}
 
             <AuthPageHeader
                 icon={<LoginIcon />}

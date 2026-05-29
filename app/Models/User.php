@@ -23,21 +23,17 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    /**
+     * Only user-facing fields that may arrive via HTTP requests belong here.
+     * Sensitive system fields (plan, payment, verification flags, OAuth data)
+     * must be set through forceFill() in the appropriate services/controllers.
+     */
     protected $fillable = [
         'name',
         'email',
-        'google_id',
-        'avatar',
         'phone',
         'cpf',
         'password',
-        'email_verified_at',
-        'phone_verified_at',
-        'plan_key',
-        'plan_billing',
-        'payment_completed',
-        'verify_account',
-        'registration_last_activity_at',
     ];
 
     /**
@@ -63,6 +59,13 @@ class User extends Authenticatable
             'payment_completed' => 'boolean',
             'verify_account' => 'boolean',
             'registration_last_activity_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_sms_fallback' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'settings' => 'array',
+            'cpf' => 'encrypted',
+            'phone' => 'encrypted',
             'password' => 'hashed',
         ];
     }

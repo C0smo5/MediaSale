@@ -56,8 +56,9 @@
   background: linear-gradient(160deg, #ede9fe 0%, #f0eeff 38%, #f5f2fc 100%);
 }
 
+* { scrollbar-width: thin; scrollbar-color: #d4d0f7 transparent; }
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #ebe4f7; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4d0f7; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 

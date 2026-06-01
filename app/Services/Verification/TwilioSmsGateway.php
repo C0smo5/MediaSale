@@ -20,22 +20,7 @@ class TwilioSmsGateway implements SmsGateway
         $sameNumber = $normalizedFrom === $normalizedTo;
 
         // #region agent log
-        file_put_contents(
-            base_path('.cursor/debug-2f7f46.log'),
-            json_encode([
-                'sessionId' => '2f7f46',
-                'hypothesisId' => 'A',
-                'location' => 'TwilioSmsGateway.php:send',
-                'message' => 'twilio send preflight',
-                'data' => [
-                    'fromSuffix' => substr($normalizedFrom, -4),
-                    'toSuffix' => substr($normalizedTo, -4),
-                    'sameNumber' => $sameNumber,
-                ],
-                'timestamp' => (int) (microtime(true) * 1000),
-            ])."\n",
-            FILE_APPEND
-        );
+        error_log('[debug-acf904] TwilioGateway::send from=*'.substr($normalizedFrom, -4).' to=*'.substr($normalizedTo, -4).' sameNumber='.($sameNumber ? 'true' : 'false'));
         // #endregion
 
         if ($sameNumber) {
@@ -51,22 +36,7 @@ class TwilioSmsGateway implements SmsGateway
             ]);
         } catch (\Throwable $exception) {
             // #region agent log
-            file_put_contents(
-                base_path('.cursor/debug-2f7f46.log'),
-                json_encode([
-                    'sessionId' => '2f7f46',
-                    'hypothesisId' => 'B,D',
-                    'location' => 'TwilioSmsGateway.php:send:catch',
-                    'message' => 'twilio api error',
-                    'data' => [
-                        'exceptionClass' => $exception::class,
-                        'code' => $exception->getCode(),
-                        'errorSnippet' => substr($exception->getMessage(), 0, 120),
-                    ],
-                    'timestamp' => (int) (microtime(true) * 1000),
-                ])."\n",
-                FILE_APPEND
-            );
+            error_log('[debug-acf904] TwilioGateway::send ERROR '.get_class($exception).' code='.$exception->getCode().' msg='.substr($exception->getMessage(), 0, 150));
             // #endregion
 
             throw $exception;

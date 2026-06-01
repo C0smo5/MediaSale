@@ -52,5 +52,9 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // #region agent log
+        $exceptions->report(function (\Throwable $e) {
+            error_log('[debug-acf904] EXCEPTION '.get_class($e).': '.substr($e->getMessage(), 0, 200).' @ '.$e->getFile().':'.$e->getLine());
+        });
+        // #endregion
     })->create();

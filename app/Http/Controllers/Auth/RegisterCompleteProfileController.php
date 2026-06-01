@@ -7,7 +7,6 @@ use App\Http\Requests\Auth\RegisterCompleteProfileRequest;
 use App\Services\Verification\VerificationCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,29 +43,18 @@ class RegisterCompleteProfileController extends Controller
         ]);
 
         // #region agent log
-        Log::info('[debug-acf904] complete-profile store: profile saved, sending SMS', [
-            'hypothesisId' => 'H-A',
-            'sms_driver' => config('registration.sms.driver'),
-            'user_id' => $user->id,
-        ]);
+        error_log('[debug-acf904] store: reached, sms_driver='.config('registration.sms.driver').' user='.$user->id);
         // #endregion
 
         try {
             $this->verificationCodeService->sendPhoneCode($user);
 
             // #region agent log
-            Log::info('[debug-acf904] complete-profile store: SMS sent successfully', [
-                'hypothesisId' => 'H-A',
-                'user_id' => $user->id,
-            ]);
+            error_log('[debug-acf904] store: SMS sent OK user='.$user->id);
             // #endregion
         } catch (\Throwable $e) {
             // #region agent log
-            Log::error('[debug-acf904] complete-profile store: SMS FAILED', [
-                'hypothesisId' => 'H-A',
-                'error' => $e->getMessage(),
-                'class' => get_class($e),
-            ]);
+            error_log('[debug-acf904] store: SMS FAILED '.get_class($e).': '.substr($e->getMessage(), 0, 150));
             // #endregion
         }
 

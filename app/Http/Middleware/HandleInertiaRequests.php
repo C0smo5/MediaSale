@@ -50,11 +50,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         return [
-            'user' => [
-                ...$user->toArray(),
-                'account_type' => $user->accountType(),
-                'account_type_label' => $user->accountTypeLabel(),
-            ],
+            'user' => $user->toInertiaAuthArray(),
         ];
     }
 }

@@ -82,12 +82,22 @@ class AuthenticatedSessionController extends Controller
 
     private function isValidInternalRedirect(string $url): bool
     {
-        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
-            return true;
+        // Reject protocol-relative URLs (e.g. //evil.com) and absolute URLs to other origins.
+        if (! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            $appUrl = rtrim((string) config('app.url'), '/');
+
+            return $appUrl !== '' && str_starts_with($url, $appUrl);
         }
 
-        $appUrl = rtrim((string) config('app.url'), '/');
+        // Allow only known safe path prefixes to prevent open-redirect via crafted paths.
+        $allowedPrefixes = ['/dashboard', '/profile', '/plans', '/settings', '/chat'];
 
-        return $appUrl !== '' && str_starts_with($url, $appUrl);
+        foreach ($allowedPrefixes as $prefix) {
+            if ($url === $prefix || str_starts_with($url, $prefix.'/') || str_starts_with($url, $prefix.'?')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

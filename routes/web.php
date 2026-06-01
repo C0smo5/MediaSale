@@ -66,10 +66,10 @@ Route::get('/two-factor/challenge', [TwoFactorController::class, 'challengeView'
     ->middleware('guest')
     ->name('two-factor.challenge');
 Route::post('/two-factor/challenge', [TwoFactorController::class, 'challengeVerify'])
-    ->middleware('guest')
+    ->middleware(['guest', 'throttle:6,1'])
     ->name('two-factor.verify');
 Route::post('/two-factor/challenge/sms', [TwoFactorController::class, 'challengeSendSms'])
-    ->middleware('guest')
+    ->middleware(['guest', 'throttle:6,1'])
     ->name('two-factor.challenge.sms');
 
 Route::middleware('auth')->group(function () {
@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('password.confirm')
         ->name('two-factor.disable');
     Route::get('/two-factor/recovery-codes', [TwoFactorController::class, 'recoveryCodes'])
+        ->middleware('password.confirm')
         ->name('two-factor.recovery-codes');
     Route::post('/two-factor/sms-fallback', [TwoFactorController::class, 'toggleSmsFallback'])
         ->middleware('password.confirm')

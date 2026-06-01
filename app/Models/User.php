@@ -44,6 +44,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'cpf',
+        'phone',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'google_id',
+        'settings',
+        'registration_last_activity_at',
     ];
 
     /**
@@ -212,6 +219,27 @@ class User extends Authenticatable
     public function accountTypeLabel(): string
     {
         return $this->accountProvider()->label();
+    }
+
+    /**
+     * Minimal safe representation sent to every authenticated frontend page via Inertia.
+     * Only include fields the UI actually needs; keep PII and secrets off the wire.
+     *
+     * @return array<string, mixed>
+     */
+    public function toInertiaAuthArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'email_verified_at' => $this->email_verified_at,
+            'plan_key' => $this->plan_key,
+            'plan_billing' => $this->plan_billing,
+            'created_at' => $this->created_at,
+            'account_type' => $this->accountType(),
+            'account_type_label' => $this->accountTypeLabel(),
+        ];
     }
 
     public function needsProfileCompletion(): bool

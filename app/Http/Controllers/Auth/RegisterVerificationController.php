@@ -51,7 +51,7 @@ class RegisterVerificationController extends Controller
                 'email' => $this->verificationCodeService->resendCooldownRemaining($user, VerificationCode::CHANNEL_EMAIL),
                 'phone' => $this->verificationCodeService->resendCooldownRemaining($user, VerificationCode::CHANNEL_PHONE),
             ],
-            'debugSmsCode' => config('app.debug') ? config('registration.sms.mock_code') : null,
+            'debugSmsCode' => config('registration.allow_payment_skip') ? config('registration.sms.mock_code') : null,
             'status' => session('status'),
         ]);
     }

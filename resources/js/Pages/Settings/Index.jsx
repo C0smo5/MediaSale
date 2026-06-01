@@ -251,6 +251,10 @@ function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSession
 
     const loadRecoveryCodes = async () => {
         const res = await fetch(route('two-factor.recovery-codes'), { headers: { Accept: 'application/json' } });
+        if (res.status === 423) {
+            router.visit(route('password.confirm'));
+            return;
+        }
         if (res.ok) setRecoveryCodes(await res.json().then(d => d.codes));
     };
 

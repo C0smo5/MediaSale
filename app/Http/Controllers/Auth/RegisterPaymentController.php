@@ -69,6 +69,14 @@ class RegisterPaymentController extends Controller
         return redirect()->route('dashboard');
     }
 
+    /**
+     * TODO (gateway): Replace with webhook-driven confirmation once a payment provider is integrated.
+     * This endpoint currently marks payment as complete without verifying a real charge.
+     * Before going live with paid plans:
+     *   1. Gate this route behind `abort_unless(config('registration.allow_payment_skip'), 404)` as a safety net.
+     *   2. Add a webhook handler that sets `payment_completed` after a verified `payment_succeeded` event.
+     *   3. Add a regression test asserting that with `allow_payment_skip=false`, POST here does NOT set payment_completed.
+     */
     public function complete(Request $request): RedirectResponse
     {
         $user = $request->user();

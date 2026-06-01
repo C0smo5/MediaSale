@@ -30,6 +30,11 @@ class SubscriptionPaymentController extends Controller
         ]);
     }
 
+    /**
+     * TODO (gateway): Replace with webhook-driven plan activation once a payment provider is integrated.
+     * This endpoint is already gated behind `allow_payment_skip` (returns 404 in production).
+     * When integrating a gateway, add a webhook handler and remove or repurpose this route.
+     */
     public function complete(Request $request): RedirectResponse
     {
         abort_unless(config('registration.allow_payment_skip'), 404);

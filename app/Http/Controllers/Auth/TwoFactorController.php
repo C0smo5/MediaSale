@@ -107,9 +107,16 @@ class TwoFactorController extends Controller
         $request->validate(['code' => ['required', 'string']]);
         $code = $request->string('code')->value();
 
-        $verified = strlen($code) === 6 && ctype_digit($code)
-            ? $this->twoFactor->verifyTotp($user, $code)
-            : $this->twoFactor->verifyRecoveryCode($user, $code);
+        if (strlen($code) === 6 && ctype_digit($code)) {
+            $verified = $this->twoFactor->verifyTotp($user, $code);
+
+            // Fall back to SMS OTP when TOTP fails and the user has SMS fallback enabled.
+            if (! $verified && $user->two_factor_sms_fallback) {
+                $verified = $this->twoFactor->verifySmsFallback($user, $code);
+            }
+        } else {
+            $verified = $this->twoFactor->verifyRecoveryCode($user, $code);
+        }
 
         if (! $verified) {
             return back()->withErrors(['code' => 'Código inválido.']);
@@ -118,6 +125,7 @@ class TwoFactorController extends Controller
         $request->session()->forget(['pending_2fa_user_id', 'pending_2fa_sms_fallback']);
         Auth::login($user);
         $this->sessions->rotateSession($request);
+        $request->session()->put('two_factor_verified', true);
 
         return redirect()->intended(route('dashboard'));
     }

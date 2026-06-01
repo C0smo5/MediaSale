@@ -2,12 +2,17 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Registration\RegistrationAccountService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRegistrationComplete
 {
+    public function __construct(
+        private readonly RegistrationAccountService $registrationAccounts,
+    ) {}
+
     /**
      * @param  Closure(Request): Response  $next
      */
@@ -20,6 +25,12 @@ class EnsureRegistrationComplete
         }
 
         $nextStep = $user->nextRegistrationStep();
+
+        // All registration steps are complete but verify_account was never set
+        // (e.g. direct navigation or Google OAuth edge cases). Fix it lazily.
+        if ($nextStep === null && ! $user->hasVerifiedAccount()) {
+            $this->registrationAccounts->markAccountVerified($user);
+        }
 
         if ($nextStep !== null) {
             $allowed = match ($nextStep) {

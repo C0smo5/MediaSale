@@ -9,7 +9,6 @@ use App\Services\Registration\RegistrationAccountService;
 use App\Services\Verification\VerificationCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,12 +25,7 @@ class RegisterVerificationController extends Controller
         $user = $request->user();
 
         // #region agent log
-        Log::info('[debug-acf904] register.verify show: reached', [
-            'hypothesisId' => 'H-D',
-            'user_id' => $user->id,
-            'needsProfileCompletion' => $user->needsProfileCompletion(),
-            'isFullyVerified' => $user->isFullyVerified(),
-        ]);
+        error_log('[debug-acf904] register.verify show: user='.$user->id.' needsProfile='.($user->needsProfileCompletion() ? '1' : '0').' fullyVerified='.($user->isFullyVerified() ? '1' : '0'));
         // #endregion
 
         if ($user->needsProfileCompletion()) {

@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.10.1",
+        "mercadopago/dx-php": "^3.10",
         "pragmarx/google2fa-laravel": "^3.0",
         "tightenco/ziggy": "^2.0",
         "twilio/sdk": "^8.11"

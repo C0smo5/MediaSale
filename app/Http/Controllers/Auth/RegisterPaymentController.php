@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Subscription;
+use App\Services\Payment\MercadoPagoService;
 use App\Services\Plan\PlanPricingService;
 use App\Services\Registration\RegistrationAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +17,7 @@ class RegisterPaymentController extends Controller
 {
     public function __construct(
         private readonly RegistrationAccountService $registrationAccounts,
+        private readonly MercadoPagoService $mercadoPago,
     ) {}
 
     public function show(Request $request, PlanPricingService $pricing): Response|RedirectResponse
@@ -50,6 +54,7 @@ class RegisterPaymentController extends Controller
         return Inertia::render('Auth/RegisterPayment', [
             'pending' => $pending,
             'canSkipPayment' => config('registration.allow_payment_skip'),
+            'mpPublicKey' => config('services.mercadopago.public_key'),
         ]);
     }
 
@@ -69,13 +74,59 @@ class RegisterPaymentController extends Controller
         return redirect()->route('dashboard');
     }
 
+    public function subscribe(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isFullyVerified() || ! $user->hasSelectedPlan() || ! $user->planRequiresPayment() || $user->hasCompletedPayment()) {
+            return redirect()->route('dashboard');
+        }
+
+        $pricing = $request->session()->get('pending_plan_pricing');
+
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'issuer_id' => ['nullable', 'string'],
+            'payment_method_id' => ['required', 'string'],
+            'transaction_amount' => ['required', 'numeric', 'min:0.01'],
+            'installments' => ['required', 'integer', 'min:1'],
+            'payer.email' => ['required', 'email'],
+            'payer.identification.type' => ['required', Rule::in(['CPF', 'CNPJ'])],
+            'payer.identification.number' => ['required', 'string'],
+        ]);
+
+        /** @var Subscription $subscription */
+        $subscription = Subscription::query()->create([
+            'user_id' => $user->id,
+            'plan_key' => $user->plan_key,
+            'billing' => $user->plan_billing,
+            'status' => Subscription::STATUS_PENDING,
+            'amount_due' => $validated['transaction_amount'],
+        ]);
+
+        $result = $this->mercadoPago->createPreApproval($user, $validated, $subscription);
+
+        $subscription->update(['mp_preapproval_id' => $result['id']]);
+
+        if ($result['status'] === 'authorized') {
+            $subscription->update(['status' => Subscription::STATUS_AUTHORIZED]);
+            $user->forceFill(['payment_completed' => true])->save();
+            $this->registrationAccounts->markAccountVerified($user);
+
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->route('register.payment.pending');
+    }
+
+    public function pending(): Response
+    {
+        return Inertia::render('Auth/RegisterPaymentPending');
+    }
+
     /**
-     * TODO (gateway): Replace with webhook-driven confirmation once a payment provider is integrated.
-     * This endpoint currently marks payment as complete without verifying a real charge.
-     * Before going live with paid plans:
-     *   1. Gate this route behind `abort_unless(config('registration.allow_payment_skip'), 404)` as a safety net.
-     *   2. Add a webhook handler that sets `payment_completed` after a verified `payment_succeeded` event.
-     *   3. Add a regression test asserting that with `allow_payment_skip=false`, POST here does NOT set payment_completed.
+     * Mock/test shortcut — only available when `allow_payment_skip` is enabled.
+     * @deprecated Replaced by the real subscribe() flow with Mercado Pago.
      */
     public function complete(Request $request): RedirectResponse
     {

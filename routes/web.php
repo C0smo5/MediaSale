@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActiveSessionController;
+use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
@@ -115,11 +116,19 @@ Route::middleware(['auth', 'registration.complete'])->group(function () {
     Route::post('/subscription/payment/complete', [SubscriptionPaymentController::class, 'complete'])
         ->name('subscription.payment.complete');
 
+    Route::post('/subscription/payment/subscribe', [SubscriptionPaymentController::class, 'subscribe'])
+        ->name('subscription.payment.subscribe');
+
     Route::post('/subscription/payment/cancel', [SubscriptionPaymentController::class, 'cancelPending'])
         ->name('subscription.payment.cancel');
 
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
         ->name('subscription.cancel');
 });
+
+// Mercado Pago webhook — excluded from CSRF in bootstrap/app.php
+Route::post('/webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle'])
+    ->name('webhooks.mp')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
 require __DIR__.'/auth.php';

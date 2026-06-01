@@ -1,13 +1,15 @@
+import MercadoPagoCardBrick from '@/Components/payment/MercadoPagoCardBrick';
 import { formatBrl, plansByKey } from '@/data/plans';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 /**
  * @param {'registration' | 'subscription'} context
- * @param {object} pending
- * @param {boolean} canSkipPayment
+ * @param {object}      pending
+ * @param {boolean}     canSkipPayment
+ * @param {string|null} [mpPublicKey]   When provided, renders the CardPayment Brick instead of the mock button.
  */
-export default function PlanPaymentView({ context, pending, canSkipPayment = false }) {
+export default function PlanPaymentView({ context, pending, canSkipPayment = false, mpPublicKey = null }) {
     const [processing, setProcessing] = useState(false);
 
     const isRegistration = context === 'registration';
@@ -26,7 +28,7 @@ export default function PlanPaymentView({ context, pending, canSkipPayment = fal
         });
     };
 
-    const completePayment = () => {
+    const handleSkipPayment = () => {
         const routeName = isRegistration ? 'register.payment.skip' : 'subscription.payment.complete';
         withProcessing(() => router.post(route(routeName)));
     };
@@ -49,9 +51,26 @@ export default function PlanPaymentView({ context, pending, canSkipPayment = fal
         withProcessing(() => router.post(route('subscription.payment.cancel')));
     };
 
+    const handleBrickSubmit = (formData) => {
+        const subscribeRoute = isRegistration
+            ? route('register.payment.subscribe')
+            : route('subscription.payment.subscribe');
+
+        return new Promise((resolve) => {
+            router.post(subscribeRoute, formData, {
+                onStart: () => setProcessing(true),
+                onFinish: () => {
+                    setProcessing(false);
+                    resolve();
+                },
+            });
+        });
+    };
+
     const title = isRegistration ? 'Pagamento do plano' : 'Pagamento do upgrade';
     const secondaryLabel = isRegistration ? 'Cancelar cadastro' : 'Voltar aos planos';
-    const completeLabel = isRegistration ? 'Pular pagamento (teste)' : 'Confirmar pagamento (teste)';
+
+    const showBrick = !!mpPublicKey;
 
     return (
         <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: '#ffffff' }}>
@@ -110,11 +129,41 @@ export default function PlanPaymentView({ context, pending, canSkipPayment = fal
                     </div>
                 </div>
 
-                <p className="mt-4 text-center text-xs" style={{ color: '#6b6b8a' }}>
-                    A tela de pagamento definitiva será integrada em breve.
-                </p>
+                {showBrick ? (
+                    <div className="mt-6">
+                        <MercadoPagoCardBrick
+                            publicKey={mpPublicKey}
+                            transactionAmount={pending.amount_due}
+                            onSubmit={handleBrickSubmit}
+                            disabled={processing}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <p className="mt-4 text-center text-xs" style={{ color: '#6b6b8a' }}>
+                            A tela de pagamento definitiva será integrada em breve.
+                        </p>
 
-                <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                        {canSkipPayment && (
+                            <div className="mt-6">
+                                <button
+                                    type="button"
+                                    onClick={handleSkipPayment}
+                                    disabled={processing}
+                                    className="w-full flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                                    style={{
+                                        background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                        boxShadow: '0 10px 24px rgba(124,58,237,0.22)',
+                                    }}
+                                >
+                                    {isRegistration ? 'Pular pagamento (teste)' : 'Confirmar pagamento (teste)'}
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <button
                         type="button"
                         onClick={handleSecondaryAction}
@@ -124,28 +173,6 @@ export default function PlanPaymentView({ context, pending, canSkipPayment = fal
                     >
                         {secondaryLabel}
                     </button>
-
-                    {canSkipPayment ? (
-                        <button
-                            type="button"
-                            onClick={completePayment}
-                            disabled={processing}
-                            className="w-full flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                            style={{
-                                background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
-                                boxShadow: '0 10px 24px rgba(124,58,237,0.22)',
-                            }}
-                        >
-                            {completeLabel}
-                        </button>
-                    ) : (
-                        <span
-                            className="flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-medium"
-                            style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: '#6b6b8a' }}
-                        >
-                            Pagamento em breve
-                        </span>
-                    )}
                 </div>
 
                 <p className="mt-4 text-center">

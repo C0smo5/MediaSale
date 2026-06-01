@@ -6,12 +6,15 @@ use App\Contracts\Verification\SmsGateway;
 use App\Models\User;
 use App\Policies\PlanPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Payment\MercadoPagoService;
 use App\Services\Verification\LogSmsGateway;
 use App\Services\Verification\TwilioSmsGateway;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use MercadoPago\Client\PreApproval\PreApprovalClient;
+use MercadoPago\MercadoPagoConfig;
 use Twilio\Rest\Client;
 
 class AppServiceProvider extends ServiceProvider
@@ -40,6 +43,16 @@ class AppServiceProvider extends ServiceProvider
                 new Client($config['account_sid'], $config['auth_token']),
                 $config['from'],
             );
+        });
+
+        $this->app->singleton(MercadoPagoService::class, function () {
+            $accessToken = config('services.mercadopago.access_token');
+
+            if ($accessToken) {
+                MercadoPagoConfig::setAccessToken($accessToken);
+            }
+
+            return new MercadoPagoService(new PreApprovalClient);
         });
     }
 

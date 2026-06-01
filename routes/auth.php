@@ -66,6 +66,12 @@ Route::middleware('auth')->group(function () {
     Route::post('register/payment/complete', [RegisterPaymentController::class, 'complete'])
         ->name('register.payment.complete');
 
+    Route::post('register/payment/subscribe', [RegisterPaymentController::class, 'subscribe'])
+        ->name('register.payment.subscribe');
+
+    Route::get('register/payment/pending', [RegisterPaymentController::class, 'pending'])
+        ->name('register.payment.pending');
+
     Route::get('register/complete-profile', [RegisterCompleteProfileController::class, 'show'])
         ->name('register.complete-profile');
 

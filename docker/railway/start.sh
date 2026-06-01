@@ -9,6 +9,9 @@ php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
+# Substituir placeholder PORT no nginx.conf pelo valor real do Railway
+sed -i "s/{{PORT}}/${PORT:-8000}/g" /etc/nginx/nginx.conf
+
 # Rodar migrations automaticamente
 php artisan migrate --force
 

@@ -3,6 +3,9 @@ set -e
 
 cd /var/www/html
 
+# Remove o arquivo de hot-reload do Vite (não deve existir em produção)
+rm -f public/hot
+
 # Cache de configuração para produção
 php artisan config:cache
 php artisan route:cache

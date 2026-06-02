@@ -147,6 +147,35 @@ export default function AuthenticatedLayout({ children }) {
         setMobileOpen(false);
     }, [pageUrl]);
 
+    useEffect(() => {
+        if (isDesktop || !mobileOpen) {
+            return undefined;
+        }
+
+        const scrollY = window.scrollY;
+
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+
+        return () => {
+            document.documentElement.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+            window.scrollTo(0, scrollY);
+        };
+    }, [mobileOpen, isDesktop]);
+
     const toggleCollapsed = () => {
         const next = !collapsed;
         setCollapsed(next);
@@ -202,7 +231,10 @@ export default function AuthenticatedLayout({ children }) {
     };
 
     return (
-        <div className="orin-min-dvh flex min-h-0 flex-col" style={{ backgroundColor: '#f8f7ff' }}>
+        <div
+            className={`orin-min-dvh flex min-h-0 flex-col ${!isDesktop && mobileOpen ? 'h-[100dvh] overflow-hidden' : ''}`}
+            style={{ backgroundColor: '#f8f7ff' }}
+        >
             <style>{`
                 @keyframes slideInUp {
                     from { opacity: 0; transform: translateY(10px); }
@@ -247,7 +279,7 @@ export default function AuthenticatedLayout({ children }) {
 
             {mobileOpen && !isDesktop && (
                 <div
-                    className="fixed inset-0 z-30 md:hidden"
+                    className="fixed inset-0 z-[45] touch-none md:hidden"
                     style={{ backgroundColor: 'rgba(26,16,64,0.45)', backdropFilter: 'blur(4px)' }}
                     onClick={closeMobileSidebar}
                     aria-hidden="true"
@@ -266,12 +298,17 @@ export default function AuthenticatedLayout({ children }) {
                     top: 0,
                     left: 0,
                     height: '100dvh',
-                    zIndex: 40,
+                    maxHeight: '100dvh',
+                    zIndex: 50,
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
+                    overscrollBehavior: 'contain',
+                    WebkitOverflowScrolling: 'touch',
                 }}
-                className={`transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+                className={`transform will-change-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+                aria-hidden={!isDesktop && !mobileOpen}
+                {...(!isDesktop && !mobileOpen ? { inert: true } : {})}
             >
                 <div
                     style={{
@@ -609,11 +646,14 @@ export default function AuthenticatedLayout({ children }) {
                 )}
 
             <main
-                className={`min-h-0 min-w-0 flex-1 overflow-x-hidden ${!isDesktop ? 'pt-14' : ''}`}
+                className={`min-h-0 min-w-0 flex-1 overflow-x-hidden ${!isDesktop ? 'pt-14' : ''} ${
+                    !isDesktop && mobileOpen ? 'pointer-events-none overflow-hidden touch-none' : ''
+                }`}
                 style={{
                     marginLeft: mainOffset,
                     transition: 'margin-left 0.28s cubic-bezier(0.4,0,0.2,1)',
                 }}
+                aria-hidden={!isDesktop && mobileOpen}
             >
                 {children}
             </main>

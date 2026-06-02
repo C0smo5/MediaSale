@@ -693,7 +693,7 @@ export default function SettingsIndex({ settings = {}, activeSessions = [], twoF
         <AuthenticatedLayout>
             <Head title="Configuracoes" />
 
-            <div className="min-h-screen min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
+            <div className="min-h-0 min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
                 <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">

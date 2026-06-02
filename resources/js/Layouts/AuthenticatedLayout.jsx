@@ -202,7 +202,7 @@ export default function AuthenticatedLayout({ children }) {
     };
 
     return (
-        <div className="min-h-screen min-h-[100dvh]" style={{ backgroundColor: '#f8f7ff' }}>
+        <div className="orin-min-dvh flex min-h-0 flex-col" style={{ backgroundColor: '#f8f7ff' }}>
             <style>{`
                 @keyframes slideInUp {
                     from { opacity: 0; transform: translateY(10px); }
@@ -265,7 +265,7 @@ export default function AuthenticatedLayout({ children }) {
                     position: 'fixed',
                     top: 0,
                     left: 0,
-                    height: '100vh',
+                    height: '100dvh',
                     zIndex: 40,
                     display: 'flex',
                     flexDirection: 'column',
@@ -609,7 +609,7 @@ export default function AuthenticatedLayout({ children }) {
                 )}
 
             <main
-                className={`min-w-0 overflow-x-hidden ${!isDesktop ? 'pt-14' : ''}`}
+                className={`min-h-0 min-w-0 flex-1 overflow-x-hidden ${!isDesktop ? 'pt-14' : ''}`}
                 style={{
                     marginLeft: mainOffset,
                     transition: 'margin-left 0.28s cubic-bezier(0.4,0,0.2,1)',

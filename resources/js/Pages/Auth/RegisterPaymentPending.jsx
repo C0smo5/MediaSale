@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 
 export default function RegisterPaymentPending() {
     return (
-        <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: '#ffffff' }}>
+        <div className="orin-min-dvh flex min-h-0 items-center justify-center px-4" style={{ backgroundColor: '#ffffff' }}>
             <Head title="Aguardando confirmação do pagamento" />
 
             <div className="w-full max-w-md text-center">

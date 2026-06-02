@@ -122,7 +122,10 @@ export default function PlanPaymentView({ context, pending, canSkipPayment = fal
     }, []);
 
     return (
-        <div className="min-h-screen min-w-0 overflow-x-hidden" style={{ backgroundColor: '#f8f7ff' }}>
+        <div
+            className="min-h-0 min-w-0 overflow-x-hidden pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            style={{ backgroundColor: '#f8f7ff' }}
+        >
             <Head title={title} />
 
             <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">

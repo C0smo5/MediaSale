@@ -526,7 +526,7 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
         <AuthenticatedLayout>
             <Head title="Perfil" />
 
-            <div className="min-h-screen min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
+            <div className="min-h-0 min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
                 <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
                     <div
                         className="overflow-hidden rounded-2xl border"

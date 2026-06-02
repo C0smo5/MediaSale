@@ -94,7 +94,7 @@ function BrandPanel() {
 
 export default function GuestLayout({ children }) {
     return (
-        <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[#f8f7ff]">
+        <div className="relative w-full overflow-x-hidden bg-[#f8f7ff]">
             <div
                 className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full blur-3xl sm:left-0 sm:h-[420px] sm:w-[420px]"
                 style={{ background: 'rgba(124,58,237,0.18)' }}

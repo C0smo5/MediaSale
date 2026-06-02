@@ -18,7 +18,7 @@ export default function RegisterPlan({ initialPlan = 'pro', initialBilling = 'mo
     }, [initialPlan, initialBilling]);
 
     return (
-        <div className="min-h-screen min-w-0 overflow-x-hidden" style={{ backgroundColor: '#ffffff' }}>
+        <div className="orin-min-dvh min-h-0 min-w-0 overflow-x-hidden" style={{ backgroundColor: '#ffffff' }}>
             <Head title="Escolher plano" />
 
             <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">

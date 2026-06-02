@@ -47,7 +47,7 @@ export default function Dashboard() {
         <AuthenticatedLayout>
             <Head title="Dashboard" />
 
-            <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
+            <div className="min-h-0 px-4 py-8 sm:px-6 lg:px-8" style={{ backgroundColor: '#f8f7ff' }}>
                 <div className="mx-auto max-w-7xl space-y-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>

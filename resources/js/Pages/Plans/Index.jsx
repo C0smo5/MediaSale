@@ -16,7 +16,7 @@ export default function PlansIndex({ mode = 'public', initialPlan = 'pro', initi
     }, [planKey, billing]);
 
     return (
-        <div className="min-h-screen min-w-0 overflow-x-hidden" style={{ backgroundColor: '#ffffff' }}>
+        <div className="orin-min-dvh min-h-0 min-w-0 overflow-x-hidden" style={{ backgroundColor: '#ffffff' }}>
             <Head title="Planos" />
 
             <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">

@@ -57,7 +57,7 @@ class EnsureRegistrationComplete
                 ],
                 'register.payment' => [
                     'register.payment',
-                    'register.payment.skip',
+                    'register.payment.*',
                     'register.cancel',
                     'logout',
                     'plans',

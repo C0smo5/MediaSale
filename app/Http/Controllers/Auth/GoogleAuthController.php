@@ -25,6 +25,16 @@ class GoogleAuthController extends Controller
 
     public function redirect(): RedirectResponse
     {
+        $clientId = (string) config('services.google.client_id', '');
+
+        if ($clientId === '') {
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'google' => 'Login com Google nao configurado: defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no arquivo .env (credenciais OAuth no Google Cloud Console).',
+                ]);
+        }
+
         return Socialite::driver('google')->redirect();
     }
 
@@ -32,11 +42,20 @@ class GoogleAuthController extends Controller
     {
         $this->authorize('linkGoogle', $request->user());
 
-
         session([
             'google_oauth_intent' => 'link',
             'google_oauth_user_id' => $request->user()->id,
         ]);
+
+        $clientId = (string) config('services.google.client_id', '');
+
+        if ($clientId === '') {
+            return redirect()
+                ->route('profile.edit', ['section' => 'info'])
+                ->withErrors([
+                    'google' => 'Vinculo com Google nao configurado: defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no .env.',
+                ]);
+        }
 
         $provider = Socialite::driver('google');
         assert($provider instanceof AbstractProvider);

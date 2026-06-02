@@ -34,6 +34,7 @@ class SubscriptionController extends Controller
 
         $this->planChangeService->clearPendingChange($request);
         $this->planChangeService->cancelSubscription($user);
+        $user->refresh();
 
         return redirect()
             ->route('profile.edit', ['section' => 'plans'])

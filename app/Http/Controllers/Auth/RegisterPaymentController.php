@@ -9,7 +9,9 @@ use App\Services\Plan\PlanPricingService;
 use App\Services\Registration\RegistrationAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,10 +53,13 @@ class RegisterPaymentController extends Controller
             ...$charge,
         ];
 
+        $mpPublicKey = trim((string) config('services.mercadopago.public_key'));
+
         return Inertia::render('Auth/RegisterPayment', [
             'pending' => $pending,
             'canSkipPayment' => config('registration.allow_payment_skip'),
-            'mpPublicKey' => config('services.mercadopago.public_key'),
+            'mpPublicKey' => $mpPublicKey !== '' ? $mpPublicKey : null,
+            'payerEmail' => $user->email,
         ]);
     }
 
@@ -77,6 +82,14 @@ class RegisterPaymentController extends Controller
     public function subscribe(Request $request): RedirectResponse
     {
         $user = $request->user();
+
+        if ($this->registrationAccounts->isInactive($user)) {
+            $this->registrationAccounts->deleteIncompleteRegistration($user);
+
+            throw ValidationException::withMessages([
+                'registration' => 'Cadastro expirado por inatividade. Reinicie o cadastro para continuar.',
+            ]);
+        }
 
         if (! $user->isFullyVerified() || ! $user->hasSelectedPlan() || ! $user->planRequiresPayment() || $user->hasCompletedPayment()) {
             return redirect()->route('dashboard');
@@ -104,7 +117,25 @@ class RegisterPaymentController extends Controller
             'amount_due' => $validated['transaction_amount'],
         ]);
 
-        $result = $this->mercadoPago->createPreApproval($user, $validated, $subscription);
+        try {
+            $result = $this->mercadoPago->createCardPayment($user, $validated, $subscription);
+        } catch (\Throwable $e) {
+            $mpError = $e instanceof \MercadoPago\Exceptions\MPApiException
+                ? $e->getApiResponse()?->getContent()
+                : null;
+
+            Log::error('Pagamento: falha ao processar cartão no Mercado Pago (cadastro)', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'plan_key' => $user->plan_key,
+                'message' => $e->getMessage(),
+                'mp_response' => $mpError,
+            ]);
+
+            throw ValidationException::withMessages([
+                'payment' => 'Não foi possível processar o pagamento. Tente novamente ou use outro cartão.',
+            ]);
+        }
 
         $subscription->update(['mp_preapproval_id' => $result['id']]);
 

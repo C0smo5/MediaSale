@@ -6,6 +6,14 @@ export function isFreePlan(planKey: PlanKey): boolean {
     return planKey === 'trial';
 }
 
+export function normalizePlanKey(planKey: string | null | undefined): PlanKey {
+    if (planKey && planKey in plansByKey) {
+        return planKey as PlanKey;
+    }
+
+    return 'trial';
+}
+
 export function calculateUpgradeCharge(
     fromPlanKey: PlanKey,
     fromBilling: BillingCycle,
@@ -14,6 +22,10 @@ export function calculateUpgradeCharge(
 ) {
     const fromPlan = plansByKey[fromPlanKey];
     const toPlan = plansByKey[toPlanKey];
+
+    if (!fromPlan || !toPlan) {
+        throw new Error('Plano invalido para calculo de upgrade.');
+    }
     const fromPrice = getPlanPrice(fromPlan, fromBilling);
     const toPrice = getPlanPrice(toPlan, toBilling);
     const fromIsTrial = isFreePlan(fromPlanKey);
@@ -46,6 +58,10 @@ export function isPlanUpgrade(
 ): boolean {
     const fromPlan = plansByKey[fromPlanKey];
     const toPlan = plansByKey[toPlanKey];
+
+    if (!fromPlan || !toPlan) {
+        return false;
+    }
 
     return getPlanPrice(toPlan, toBilling) > getPlanPrice(fromPlan, fromBilling);
 }

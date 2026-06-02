@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\RegisterPaymentController;
 use App\Http\Controllers\Auth\RegisterPlanController;
 use App\Http\Controllers\Auth\RegisterVerificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Middleware\EnsureRegistrationSessionActive;
 use Illuminate\Support\Facades\Route;
 
 Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
@@ -47,7 +48,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', EnsureRegistrationSessionActive::class])->group(function () {
     Route::post('register/cancel', [RegisterCancellationController::class, 'store'])
         ->name('register.cancel');
 

@@ -51,6 +51,19 @@ class RegistrationAccountService
         User::destroy($user->getKey());
     }
 
+    public function isInactive(User $user): bool
+    {
+        if ($user->hasVerifiedAccount()) {
+            return false;
+        }
+
+        $cutoff = now()->subMinutes($this->inactivityMinutes());
+
+        $lastActivity = $user->registration_last_activity_at ?? $user->created_at;
+
+        return $lastActivity !== null && $lastActivity->lt($cutoff);
+    }
+
     /**
      * Opcao 3: exclusao por inatividade (cadastro abandonado sem cancelar/sair).
      */

@@ -91,7 +91,7 @@ test('abandoned incomplete account is purged on web request after inactivity', f
 
     $active = User::factory()->registrationIncomplete()->create([
         'email' => 'active@gmail.com',
-        'registration_last_activity_at' => now()->subMinutes(5),
+        'registration_last_activity_at' => now()->subSeconds(30),
     ]);
 
     $this->actingAs($active)->get(route('register.verify'));
@@ -125,6 +125,25 @@ test('logout deletes incomplete registration account immediately', function () {
     ]);
 
     $this->actingAs($user)->post(route('logout'));
+
+    $this->assertDatabaseMissing('users', ['id' => $user->id]);
+});
+
+test('inactive registration on payment page redirects to register with expired status', function () {
+    $user = User::factory()->registrationIncomplete()->create([
+        'email' => 'expired-pay@gmail.com',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'plan_key' => 'starter',
+        'plan_billing' => 'monthly',
+        'payment_completed' => false,
+        'registration_last_activity_at' => now()->subMinutes(5),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('register.payment'))
+        ->assertRedirect(route('register'))
+        ->assertSessionHas('status', 'registration-expired');
 
     $this->assertDatabaseMissing('users', ['id' => $user->id]);
 });

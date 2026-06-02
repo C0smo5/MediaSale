@@ -71,6 +71,12 @@ const STATUS_MESSAGES = {
         title: 'Alteracao cancelada',
         text: 'A mudanca de plano foi cancelada.',
     },
+    'registration-expired': {
+        icon: 'warning',
+        title: 'Cadastro expirado',
+        text: 'Sua sessao de cadastro expirou por inatividade. Crie uma nova conta para continuar.',
+        confirmButtonText: 'Reiniciar cadastro',
+    },
     'no-pending-plan-change': {
         icon: 'info',
         title: 'Nenhuma alteracao pendente',

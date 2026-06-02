@@ -1,6 +1,39 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+    formatPaymentFormError,
+    isBrickRecoverableError,
+    logPaymentFormError,
+} from '@/lib/paymentFormLogger';
+import { useEffect, useId, useRef, useState } from 'react';
 
 const MP_SDK_URL = 'https://sdk.mercadopago.com/js/v2';
+
+/** Remove chevron do @tailwindcss/forms; o Brick já desenha o ícone do select. */
+const MP_BRICK_SELECT_FIX_CSS = `
+  select {
+    background-image: none !important;
+    background-position: unset !important;
+    background-repeat: unset !important;
+    background-size: unset !important;
+    print-color-adjust: unset !important;
+  }
+`;
+
+function injectBrickSelectFix(root) {
+    if (!root || root.querySelector('[data-mp-brick-select-fix]')) {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.setAttribute('data-mp-brick-select-fix', 'true');
+    style.textContent = MP_BRICK_SELECT_FIX_CSS;
+    root.appendChild(style);
+
+    root.querySelectorAll('*').forEach((el) => {
+        if (el.shadowRoot) {
+            injectBrickSelectFix(el.shadowRoot);
+        }
+    });
+}
 
 function loadMpSdk() {
     return new Promise((resolve, reject) => {
@@ -26,73 +59,176 @@ function loadMpSdk() {
 }
 
 /**
- * Renders a Mercado Pago CardPayment Brick.
- *
- * @param {object}   props
- * @param {string}   props.publicKey        MP public key.
- * @param {number}   props.transactionAmount Total amount to charge.
- * @param {function} props.onSubmit         Called with the brick's formData on submission.
- * @param {function} [props.onError]        Called with error details on brick error.
- * @param {boolean}  [props.disabled]       Disable the brick container.
+ * MP Brick `unmount()` may return void, not a Promise — never chain `.catch()` directly.
+ * @param {unknown} controller
+ * @returns {Promise<void>}
  */
-export default function MercadoPagoCardBrick({ publicKey, transactionAmount, onSubmit, onError, disabled = false }) {
-    const containerId = useRef(`mp-card-brick-${Math.random().toString(36).slice(2)}`);
+function safeUnmountBrick(controller) {
+    if (!controller || typeof controller.unmount !== 'function') {
+        return Promise.resolve();
+    }
+
+    try {
+        const result = controller.unmount();
+
+        if (result != null && typeof result.then === 'function') {
+            return result.catch(() => {});
+        }
+    } catch {
+        // ignore unmount errors during cleanup
+    }
+
+    return Promise.resolve();
+}
+
+export async function cleanupMercadoPagoBrick() {
+    await safeUnmountBrick(window.cardPaymentBrickController);
+    window.cardPaymentBrickController = null;
+}
+
+/**
+ * @param {object}   props
+ * @param {string}   props.publicKey
+ * @param {number}   props.transactionAmount
+ * @param {string}   [props.payerEmail]
+ * @param {function} props.onSubmit
+ * @param {function} [props.onError]
+ * @param {boolean}  [props.disabled]
+ */
+export default function MercadoPagoCardBrick({
+    publicKey,
+    transactionAmount,
+    payerEmail = null,
+    onSubmit,
+    onError,
+    disabled = false,
+}) {
+    const reactId = useId();
+    const containerId = `mp-card-brick-${reactId.replace(/:/g, '')}`;
+    const containerRef = useRef(null);
     const brickRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [errorDetail, setErrorDetail] = useState(null);
+
+    const reportError = (phase, err, extra = {}) => {
+        const detail = logPaymentFormError(`MercadoPagoCardBrick:${phase}`, err, {
+            public_key_prefix: publicKey ? String(publicKey).slice(0, 8) : null,
+            amount: transactionAmount,
+            container_id: containerId,
+            ...extra,
+        });
+
+        setError(formatPaymentFormError(err));
+        setErrorDetail(import.meta.env.DEV ? detail : null);
+        setLoading(false);
+        onError?.(err);
+    };
 
     useEffect(() => {
-        if (!publicKey || !transactionAmount) return;
+        const amount = Number(transactionAmount);
+
+        if (!publicKey || !Number.isFinite(amount) || amount <= 0) {
+            reportError('config', {
+                message: 'Configuração inválida',
+                cause: !publicKey ? 'missing_public_key' : 'invalid_amount',
+            });
+            return;
+        }
 
         let cancelled = false;
 
         const init = async () => {
             try {
+                await cleanupMercadoPagoBrick();
+
+                if (cancelled) {
+                    return;
+                }
+
                 const MercadoPago = await loadMpSdk();
 
-                if (cancelled) return;
+                if (cancelled) {
+                    return;
+                }
+
+                const container = containerRef.current ?? document.getElementById(containerId);
+                if (!container) {
+                    reportError('container', { message: 'Container não encontrado', cause: 'container_not_found' });
+                    return;
+                }
 
                 const mp = new MercadoPago(publicKey, { locale: 'pt-BR' });
                 const bricksBuilder = mp.bricks();
 
-                if (brickRef.current) {
-                    await brickRef.current.unmount();
-                }
+                const initialization = {
+                    amount,
+                    ...(payerEmail ? { payer: { email: payerEmail } } : {}),
+                };
 
-                brickRef.current = await bricksBuilder.create('cardPayment', containerId.current, {
-                    initialization: { amount: transactionAmount },
+                const controller = await bricksBuilder.create('cardPayment', containerId, {
+                    initialization,
                     customization: {
                         visual: { style: { theme: 'default' } },
                         paymentMethods: { minInstallments: 1, maxInstallments: 12 },
                     },
                     callbacks: {
                         onReady: () => {
-                            if (!cancelled) setLoading(false);
+                            if (!cancelled) {
+                                const brickRoot =
+                                    containerRef.current ?? document.getElementById(containerId);
+                                if (brickRoot) {
+                                    injectBrickSelectFix(brickRoot);
+                                }
+                                setLoading(false);
+                                setError(null);
+                                setErrorDetail(null);
+                            }
                         },
-                        onSubmit: (formData) => {
-                            return new Promise((resolve, reject) => {
+                        onSubmit: (formData) =>
+                            new Promise((resolve, reject) => {
                                 try {
                                     const result = onSubmit(formData);
                                     if (result instanceof Promise) {
-                                        result.then(resolve).catch(reject);
+                                        result.then(resolve).catch((submitErr) => {
+                                            logPaymentFormError('MercadoPagoCardBrick:onSubmit', submitErr);
+                                            reject(submitErr);
+                                        });
                                     } else {
                                         resolve(result);
                                     }
-                                } catch (err) {
-                                    reject(err);
+                                } catch (submitErr) {
+                                    logPaymentFormError('MercadoPagoCardBrick:onSubmit', submitErr);
+                                    reject(submitErr);
                                 }
-                            });
-                        },
-                        onError: (err) => {
-                            if (!cancelled) setError('Erro ao carregar formulário de pagamento.');
-                            onError?.(err);
+                            }),
+                        onError: (brickError) => {
+                            if (cancelled) {
+                                return;
+                            }
+
+                            // BIN parcial / bandeira ainda não identificada — normal ao digitar
+                            if (isBrickRecoverableError(brickError)) {
+                                logPaymentFormError('MercadoPagoCardBrick:brick', brickError);
+                                onError?.(brickError);
+                                return;
+                            }
+
+                            reportError('brick', brickError);
                         },
                     },
                 });
+
+                if (cancelled) {
+                    await safeUnmountBrick(controller);
+                    return;
+                }
+
+                brickRef.current = controller;
+                window.cardPaymentBrickController = controller;
             } catch (err) {
                 if (!cancelled) {
-                    setError('Não foi possível carregar o formulário de pagamento.');
-                    setLoading(false);
+                    reportError('init', err);
                 }
             }
         };
@@ -101,17 +237,32 @@ export default function MercadoPagoCardBrick({ publicKey, transactionAmount, onS
 
         return () => {
             cancelled = true;
-            brickRef.current?.unmount().catch(() => {});
+            const controller = brickRef.current;
+            safeUnmountBrick(controller).finally(() => {
+                if (window.cardPaymentBrickController === controller) {
+                    window.cardPaymentBrickController = null;
+                }
+            });
+            brickRef.current = null;
         };
-    }, [publicKey, transactionAmount]);
+    }, [publicKey, transactionAmount, payerEmail, containerId]);
 
     if (error) {
         return (
             <div
-                className="rounded-xl border p-4 text-center text-sm"
+                className="rounded-xl border p-4 text-sm"
                 style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#dc2626', backgroundColor: '#fef2f2' }}
+                role="alert"
             >
-                {error}
+                <p className="text-center font-medium">{error}</p>
+                {errorDetail && (
+                    <p
+                        className="mt-2 break-all text-center font-mono text-xs"
+                        style={{ color: '#991b1b' }}
+                    >
+                        {errorDetail}
+                    </p>
+                )}
             </div>
         );
     }
@@ -135,8 +286,9 @@ export default function MercadoPagoCardBrick({ publicKey, transactionAmount, onS
                 </div>
             )}
             <div
-                id={containerId.current}
-                className={disabled ? 'pointer-events-none opacity-60' : ''}
+                ref={containerRef}
+                id={containerId}
+                className={`mp-card-brick-root ${disabled ? 'pointer-events-none opacity-60' : ''}`}
             />
         </div>
     );

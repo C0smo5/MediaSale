@@ -8,7 +8,8 @@ import LinkedAccountsForm from './Partials/LinkedAccountsForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import { ComparisonTable } from '@/Components/plans/PlansPicker';
 import { plans as unifiedPlans, plansByKey, getPlanPrice, formatBrl } from '@/data/plans';
-import { calculateUpgradeCharge, isPlanUpgrade } from '@/lib/planUpgrade';
+import { calculateUpgradeCharge, isPlanUpgrade, normalizePlanKey } from '@/lib/planUpgrade';
+import { getUserFirstName, getUserInitials } from '@/lib/userDisplay';
 
 const LogoutIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,11 +132,62 @@ function AccountLinkingBanner({ linkedAccounts, onCreateOrinPassword }) {
     );
 }
 
+const DEBUG_ENDPOINT = 'http://127.0.0.1:7741/ingest/bd361424-ca07-45e1-a5c9-f42edd45af30';
+
+// #region agent log
+function debugProfileLog(location, message, data, hypothesisId) {
+    fetch(DEBUG_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '9f1182' },
+        body: JSON.stringify({
+            sessionId: '9f1182',
+            runId: 'profile-plans',
+            hypothesisId,
+            location,
+            message,
+            data,
+            timestamp: Date.now(),
+        }),
+    }).catch(() => {});
+}
+// #endregion
+
 export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedAccounts }) {
     const { auth } = usePage().props;
-    const user = auth.user;
+    const user = auth?.user;
+
+    if (!user) {
+        return (
+            <AuthenticatedLayout>
+                <div className="flex min-h-[50vh] items-center justify-center px-4">
+                    <p className="text-sm" style={{ color: '#6b6b8a' }}>
+                        Nao foi possivel carregar seu perfil.{' '}
+                        <a href={route('login')} className="font-semibold" style={{ color: '#7c3aed' }}>
+                            Entrar novamente
+                        </a>
+                    </p>
+                </div>
+            </AuthenticatedLayout>
+        );
+    }
+
     const [activeSection, setActiveSection] = useState(initialSection);
     const [pendingLinkingScroll, setPendingLinkingScroll] = useState(false);
+
+    useEffect(() => {
+        setActiveSection(initialSection);
+    }, [initialSection]);
+
+    useEffect(() => {
+        // #region agent log
+        debugProfileLog('Profile/Edit.jsx:mount', 'profile page mounted', {
+            initialSection,
+            activeSection,
+            plan_key: user.plan_key,
+            has_name: Boolean(user.name),
+        }, 'F');
+        // #endregion
+    }, [initialSection, activeSection, user.plan_key, user.name]);
 
     const focusOrinPasswordField = () => {
         document.getElementById('link_password')?.focus();
@@ -173,16 +225,11 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
         ? new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date(user.created_at))
         : '—';
 
-    const currentPlanKey = user.plan_key ?? 'trial';
-    const currentPlanBilling = user.plan_billing ?? 'monthly';
+    const currentPlanKey = normalizePlanKey(user.plan_key);
+    const currentPlanBilling = user.plan_billing === 'annual' ? 'annual' : 'monthly';
     const currentPlan = plansByKey[currentPlanKey] ?? plansByKey.trial;
 
-    const initials = user.name
-        .split(' ')
-        .map((name) => name[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
+    const initials = getUserInitials(user.name);
 
     const sections = [
         { key: 'info', label: 'Dados pessoais', description: 'Nome e e-mail', icon: UserIcon },
@@ -502,7 +549,9 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
                                         {initials}
                                     </div>
                                     <div className="min-w-0 pb-1">
-                                        <h1 className="truncate text-xl font-bold text-white sm:text-2xl">{user.name}</h1>
+                                        <h1 className="truncate text-xl font-bold text-white sm:text-2xl">
+                                            {user.name?.trim() || getUserFirstName(user.name)}
+                                        </h1>
                                         <p className="mt-1 truncate text-sm text-white/80">{user.email}</p>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">

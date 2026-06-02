@@ -284,6 +284,18 @@ body {
   }
 }
 
+/*
+ * Card Payment Brick (Mercado Pago): @tailwindcss/forms injeta chevron em todo
+ * `select` via background-image; o Brick também renderiza o ícone → seta dupla.
+ */
+.mp-card-brick-root select {
+  background-image: none !important;
+  background-position: unset !important;
+  background-repeat: unset !important;
+  background-size: unset !important;
+  print-color-adjust: unset !important;
+}
+
 /* Fundo geral: predominância lilás / lavanda, pouco branco “plano” */
 .bg-page-balanced {
   background-color: #ebe4f7;

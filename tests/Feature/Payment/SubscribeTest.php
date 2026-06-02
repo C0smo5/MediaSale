@@ -18,8 +18,8 @@ $validCardPayload = [
 function makeMpServiceWithStatus(string $status): MercadoPagoService
 {
     $mock = Mockery::mock(MercadoPagoService::class);
-    $mock->allows('createPreApproval')->andReturn([
-        'id' => 'preapproval_test_' . $status,
+    $mock->allows('createCardPayment')->andReturn([
+        'id' => 'payment_test_' . $status,
         'status' => $status,
         'init_point' => null,
     ]);
@@ -56,7 +56,7 @@ test('register subscribe with MP authorized response completes payment and redir
     expect(Subscription::query()->where('user_id', $user->id)->count('*'))->toBe(1);
     $sub = Subscription::query()->where('user_id', $user->id)->first();
     expect($sub->status)->toBe(Subscription::STATUS_AUTHORIZED);
-    expect($sub->mp_preapproval_id)->toBe('preapproval_test_authorized');
+    expect($sub->mp_preapproval_id)->toBe('payment_test_authorized');
 });
 
 test('register subscribe with MP pending response creates pending subscription and redirects to pending page', function () use ($validCardPayload) {
@@ -164,8 +164,8 @@ test('subscription subscribe cancels existing active MP subscription before crea
 
     $mpMock = Mockery::mock(MercadoPagoService::class);
     $mpMock->expects('cancelPreApproval')->with('old_preapproval_id')->once();
-    $mpMock->allows('createPreApproval')->andReturn([
-        'id' => 'new_preapproval_id',
+    $mpMock->allows('createCardPayment')->andReturn([
+        'id' => 'new_payment_id',
         'status' => 'authorized',
         'init_point' => null,
     ]);

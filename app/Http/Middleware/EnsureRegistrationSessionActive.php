@@ -7,25 +7,28 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class TouchRegistrationActivity
+class EnsureRegistrationSessionActive
 {
     public function __construct(
         private readonly RegistrationAccountService $registrationAccounts,
     ) {}
 
     /**
+     * Cadastro incompleto expirado por inatividade: encerra sessão e pede novo cadastro.
+     *
      * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if ($user && ! $user->hasVerifiedAccount() && ! $this->registrationAccounts->isInactive($user)) {
-            $this->registrationAccounts->touchActivity($user);
-        }
+        if ($user && ! $user->hasVerifiedAccount() && $this->registrationAccounts->isInactive($user)) {
+            $this->registrationAccounts->deleteIncompleteRegistration($user);
 
-        // Opcao 3: so contas abandonadas ha mais de inactivity_minutes (nao cancelou nem saiu).
-        $this->registrationAccounts->maybePurgeAbandonedIncompleteRegistrations($user?->id);
+            return redirect()
+                ->route('register')
+                ->with('status', 'registration-expired');
+        }
 
         return $next($request);
     }

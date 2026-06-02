@@ -34,7 +34,17 @@ return Application::configure(basePath: dirname(__DIR__))
             TouchRegistrationActivity::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('register/payment*') || $request->routeIs('register.payment*')) {
+                if ($request->hasSession()) {
+                    $request->session()->flash('status', 'registration-expired');
+                }
+
+                return route('register');
+            }
+
+            return route('login');
+        });
         $middleware->redirectUsersTo(function (Request $request) {
             $user = $request->user();
 

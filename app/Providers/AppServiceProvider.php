@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\PreApproval\PreApprovalClient;
 use MercadoPago\MercadoPagoConfig;
 use Twilio\Rest\Client;
@@ -52,7 +53,10 @@ class AppServiceProvider extends ServiceProvider
                 MercadoPagoConfig::setAccessToken($accessToken);
             }
 
-            return new MercadoPagoService(new PreApprovalClient);
+            return new MercadoPagoService(
+                new PreApprovalClient,
+                new PaymentClient,
+            );
         });
     }
 

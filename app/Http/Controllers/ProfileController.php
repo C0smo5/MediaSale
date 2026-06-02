@@ -25,6 +25,25 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // #region agent log
+        $debugPayload = json_encode([
+            'sessionId' => '9f1182',
+            'runId' => 'profile-plans',
+            'hypothesisId' => 'F',
+            'location' => 'ProfileController.php:edit',
+            'message' => 'render profile edit',
+            'data' => [
+                'section' => $section,
+                'initial_section' => $initialSection,
+                'user_id' => $user->id,
+                'has_name' => filled($user->name),
+                'plan_key' => $user->plan_key,
+            ],
+            'timestamp' => (int) round(microtime(true) * 1000),
+        ]);
+        @file_put_contents(base_path('.cursor/debug-9f1182.log'), $debugPayload.PHP_EOL, FILE_APPEND | LOCK_EX);
+        // #endregion
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),

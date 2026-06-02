@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BrandLogo from '@/Components/branding/BrandLogo';
 import { chatHistoryItems, useChatSidebarOptional } from '@/contexts/ChatSidebarContext';
+import { getUserFirstName, getUserInitials } from '@/lib/userDisplay';
 
 const DashboardIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -82,7 +83,20 @@ export default function AuthenticatedLayout({ children }) {
     const page = usePage();
     const { auth } = page.props;
     const pageUrl = page.url ?? '';
-    const user = auth.user;
+    const user = auth?.user;
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#f8f7ff' }}>
+                <p className="text-sm" style={{ color: '#6b6b8a' }}>
+                    Sessao expirada.{' '}
+                    <a href={route('login')} className="font-semibold" style={{ color: '#7c3aed' }}>
+                        Faca login novamente
+                    </a>
+                </p>
+            </div>
+        );
+    }
     const chatSidebar = useChatSidebarOptional();
     const isChatRoute = useMemo(() => route().current('chat'), [pageUrl]);
 
@@ -146,12 +160,7 @@ export default function AuthenticatedLayout({ children }) {
 
     const closeMobileSidebar = () => setMobileOpen(false);
 
-    const initials = user.name
-        .split(' ')
-        .map((name) => name[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
+    const initials = getUserInitials(user.name);
 
     const navLinks = [
         { label: 'Dashboard', route: 'dashboard', icon: <DashboardIcon /> },
@@ -497,7 +506,7 @@ export default function AuthenticatedLayout({ children }) {
                                         textOverflow: 'ellipsis',
                                     }}
                                 >
-                                    {user.name.split(' ')[0]}
+                                    {getUserFirstName(user.name)}
                                 </p>
                                 <p
                                     style={{

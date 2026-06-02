@@ -33,24 +33,6 @@ class SubscriptionPaymentController extends Controller
         $user = $request->user();
         $mpPublicKey = trim((string) config('services.mercadopago.public_key'));
 
-        // #region agent log
-        $debugPayload = json_encode([
-            'sessionId' => '9f1182',
-            'runId' => 'mp-brick',
-            'hypothesisId' => 'B',
-            'location' => 'SubscriptionPaymentController.php:show',
-            'message' => 'subscription payment page props',
-            'data' => [
-                'mp_public_key_len' => strlen($mpPublicKey),
-                'mp_public_key_prefix' => substr($mpPublicKey, 0, 8),
-                'amount_due' => $pending['amount_due'] ?? null,
-                'amount_due_type' => gettype($pending['amount_due'] ?? null),
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ]);
-        @file_put_contents(base_path('.cursor/debug-9f1182.log'), $debugPayload.PHP_EOL, FILE_APPEND | LOCK_EX);
-        // #endregion
-
         return Inertia::render('Subscription/Payment', [
             'pending' => $pending,
             'canSkipPayment' => config('registration.allow_payment_skip'),
@@ -139,23 +121,6 @@ class SubscriptionPaymentController extends Controller
                 'mp_response' => $mpError,
             ]);
 
-            // #region agent log
-            $debugPayload = json_encode([
-                'sessionId' => '9f1182',
-                'runId' => 'mp-payment',
-                'hypothesisId' => 'E',
-                'location' => 'SubscriptionPaymentController.php:subscribe',
-                'message' => 'subscribe payment failed',
-                'data' => [
-                    'subscription_id' => $subscription->id,
-                    'exception' => $e::class,
-                    'mp_response' => $mpError,
-                ],
-                'timestamp' => (int) round(microtime(true) * 1000),
-            ]);
-            @file_put_contents(base_path('.cursor/debug-9f1182.log'), $debugPayload.PHP_EOL, FILE_APPEND | LOCK_EX);
-            // #endregion
-
             throw ValidationException::withMessages([
                 'payment' => 'Não foi possível processar o pagamento. Tente novamente ou use outro cartão.',
             ]);
@@ -177,22 +142,6 @@ class SubscriptionPaymentController extends Controller
     public function cancelPending(Request $request): RedirectResponse
     {
         $this->planChangeService->clearPendingChange($request);
-
-        // #region agent log
-        $debugPayload = json_encode([
-            'sessionId' => '9f1182',
-            'runId' => 'profile-plans',
-            'hypothesisId' => 'G',
-            'location' => 'SubscriptionPaymentController.php:cancelPending',
-            'message' => 'cancel pending plan change',
-            'data' => [
-                'user_id' => $request->user()?->id,
-                'plan_key' => $request->user()?->plan_key,
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ]);
-        @file_put_contents(base_path('.cursor/debug-9f1182.log'), $debugPayload.PHP_EOL, FILE_APPEND | LOCK_EX);
-        // #endregion
 
         return redirect()
             ->route('profile.edit', ['section' => 'plans'])

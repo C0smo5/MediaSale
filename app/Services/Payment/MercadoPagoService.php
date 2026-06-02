@@ -10,7 +10,6 @@ use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\PreApproval\PreApprovalClient;
 use MercadoPago\Exceptions\InvalidWebhookSignatureException;
-use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\Webhook\WebhookSignatureValidator;
 
 class MercadoPagoService
@@ -70,37 +69,12 @@ class MercadoPagoService
             $request['notification_url'] = $notificationUrl;
         }
 
-        // #region agent log
-        $this->writeDebugLog('MercadoPagoService.php:createCardPayment', 'payment request prepared', 'E', [
-            'subscription_id' => $subscription->id,
-            'amount' => $request['transaction_amount'],
-            'payment_method_id' => $request['payment_method_id'],
-            'installments' => $request['installments'],
-            'includes_notification_url' => $includesNotificationUrl,
-            'payer_email_domain' => str_contains($cardData['payer']['email'], '@')
-                ? substr(strrchr($cardData['payer']['email'], '@'), 1)
-                : null,
-        ]);
-        // #endregion
-
         $options = new RequestOptions;
         $options->setCustomHeaders([
             'X-Idempotency-Key: orin-sub-'.$subscription->id.'-'.Str::uuid(),
         ]);
 
-        try {
-            $payment = $this->paymentClient->create($request, $options);
-        } catch (MPApiException $e) {
-            // #region agent log
-            $this->writeDebugLog('MercadoPagoService.php:createCardPayment', 'payment API error', 'E', [
-                'subscription_id' => $subscription->id,
-                'mp_status' => $e->getApiResponse()?->getStatusCode(),
-                'mp_body' => $e->getApiResponse()?->getContent(),
-            ]);
-            // #endregion
-
-            throw $e;
-        }
+        $payment = $this->paymentClient->create($request, $options);
 
         if (in_array($payment->status, ['rejected', 'cancelled'], true)) {
             throw new \RuntimeException(
@@ -113,15 +87,6 @@ class MercadoPagoService
             'pending', 'in_process' => 'pending',
             default => 'pending',
         };
-
-        // #region agent log
-        $this->writeDebugLog('MercadoPagoService.php:createCardPayment', 'payment API success', 'E', [
-            'subscription_id' => $subscription->id,
-            'payment_id' => $payment->id,
-            'mp_status' => $payment->status,
-            'mapped_status' => $mappedStatus,
-        ]);
-        // #endregion
 
         return [
             'id' => (string) $payment->id,
@@ -231,25 +196,5 @@ class MercadoPagoService
         }
 
         return filter_var($url, FILTER_VALIDATE_URL) !== false;
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function writeDebugLog(string $location, string $message, string $hypothesisId, array $data): void
-    {
-        $payload = json_encode([
-            'sessionId' => '9f1182',
-            'runId' => 'mp-payment',
-            'hypothesisId' => $hypothesisId,
-            'location' => $location,
-            'message' => $message,
-            'data' => $data,
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ]);
-
-        if ($payload !== false) {
-            @file_put_contents(base_path('.cursor/debug-9f1182.log'), $payload.PHP_EOL, FILE_APPEND | LOCK_EX);
-        }
     }
 }

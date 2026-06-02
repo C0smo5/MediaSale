@@ -1,6 +1,3 @@
-const DEBUG_ENDPOINT = 'http://127.0.0.1:7741/ingest/bd361424-ca07-45e1-a5c9-f42edd45af30';
-const DEBUG_SESSION_ID = '9f1182';
-
 const CAUSE_MESSAGES = {
     amount_is_not_number: 'Valor do pagamento inválido.',
     missing_amount_property: 'Valor do pagamento não informado.',
@@ -93,25 +90,6 @@ export function logPaymentFormError(location, error, context = {}) {
     const isRecoverable = isBrickRecoverableError(error);
     const logFn = isRecoverable ? console.warn : console.error;
     logFn(`[Orin · Pagamento${isRecoverable ? ' · aviso' : ''}]`, payload);
-
-    if (import.meta.env.DEV) {
-        fetch(DEBUG_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Debug-Session-Id': DEBUG_SESSION_ID,
-            },
-            body: JSON.stringify({
-                sessionId: DEBUG_SESSION_ID,
-                runId: 'payment-form-error',
-                hypothesisId: 'payment-error',
-                location,
-                message: 'payment form error',
-                data: payload,
-                timestamp: Date.now(),
-            }),
-        }).catch(() => {});
-    }
 
     const parts = [location];
     if (payload.cause) {

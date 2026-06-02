@@ -42,21 +42,7 @@ class RegisterCompleteProfileController extends Controller
             'cpf' => $request->string('cpf')->value(),
         ]);
 
-        // #region agent log
-        error_log('[debug-acf904] store: reached, sms_driver='.config('registration.sms.driver').' user='.$user->id);
-        // #endregion
-
-        try {
-            $this->verificationCodeService->sendPhoneCode($user);
-
-            // #region agent log
-            error_log('[debug-acf904] store: SMS sent OK user='.$user->id);
-            // #endregion
-        } catch (\Throwable $e) {
-            // #region agent log
-            error_log('[debug-acf904] store: SMS FAILED '.get_class($e).': '.substr($e->getMessage(), 0, 150));
-            // #endregion
-        }
+        $this->verificationCodeService->sendPhoneCode($user);
 
         return redirect()
             ->route('register.verify')

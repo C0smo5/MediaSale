@@ -132,26 +132,6 @@ function AccountLinkingBanner({ linkedAccounts, onCreateOrinPassword }) {
     );
 }
 
-const DEBUG_ENDPOINT = 'http://127.0.0.1:7741/ingest/bd361424-ca07-45e1-a5c9-f42edd45af30';
-
-// #region agent log
-function debugProfileLog(location, message, data, hypothesisId) {
-    fetch(DEBUG_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '9f1182' },
-        body: JSON.stringify({
-            sessionId: '9f1182',
-            runId: 'profile-plans',
-            hypothesisId,
-            location,
-            message,
-            data,
-            timestamp: Date.now(),
-        }),
-    }).catch(() => {});
-}
-// #endregion
-
 export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedAccounts }) {
     const { auth } = usePage().props;
     const user = auth?.user;
@@ -177,17 +157,6 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
     useEffect(() => {
         setActiveSection(initialSection);
     }, [initialSection]);
-
-    useEffect(() => {
-        // #region agent log
-        debugProfileLog('Profile/Edit.jsx:mount', 'profile page mounted', {
-            initialSection,
-            activeSection,
-            plan_key: user.plan_key,
-            has_name: Boolean(user.name),
-        }, 'F');
-        // #endregion
-    }, [initialSection, activeSection, user.plan_key, user.name]);
 
     const focusOrinPasswordField = () => {
         document.getElementById('link_password')?.focus();

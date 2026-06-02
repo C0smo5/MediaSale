@@ -5,7 +5,6 @@ use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TouchRegistrationActivity;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
@@ -60,11 +59,4 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return route('dashboard');
         });
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        // #region agent log
-        $exceptions->report(function (\Throwable $e) {
-            error_log('[debug-acf904] EXCEPTION '.get_class($e).': '.substr($e->getMessage(), 0, 200).' @ '.$e->getFile().':'.$e->getLine());
-        });
-        // #endregion
     })->create();

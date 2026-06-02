@@ -24,10 +24,6 @@ class RegisterVerificationController extends Controller
     {
         $user = $request->user();
 
-        // #region agent log
-        error_log('[debug-acf904] register.verify show: user='.$user->id.' needsProfile='.($user->needsProfileCompletion() ? '1' : '0').' fullyVerified='.($user->isFullyVerified() ? '1' : '0'));
-        // #endregion
-
         if ($user->needsProfileCompletion()) {
             return redirect()->route('register.complete-profile');
         }

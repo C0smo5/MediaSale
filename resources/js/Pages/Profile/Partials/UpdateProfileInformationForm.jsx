@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 function Field({ label, id, error, children }) {
     return (
@@ -35,6 +36,13 @@ export default function UpdateProfileInformationForm({ mustVerifyEmail, classNam
         name: user.name,
         email: user.email,
     });
+
+    useEffect(() => {
+        setData({
+            name: user.name ?? '',
+            email: user.email ?? '',
+        });
+    }, [user.name, user.email, setData]);
 
     const submit = (event) => {
         event.preventDefault();

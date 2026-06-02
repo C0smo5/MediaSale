@@ -49,6 +49,8 @@ class HandleInertiaRequests extends Middleware
             return ['user' => null];
         }
 
+        $user->refresh();
+
         return [
             'user' => $user->toInertiaAuthArray(),
         ];

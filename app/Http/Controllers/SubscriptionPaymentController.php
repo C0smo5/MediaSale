@@ -74,7 +74,9 @@ class SubscriptionPaymentController extends Controller
             return redirect()->route('profile.edit', ['section' => 'plans']);
         }
 
-        $this->planChangeService->applyPendingChange($request, $request->user());
+        $user = $request->user();
+        $this->planChangeService->applyPendingChange($request, $user);
+        $user->refresh();
 
         return redirect()
             ->route('profile.edit', ['section' => 'plans'])
@@ -164,6 +166,7 @@ class SubscriptionPaymentController extends Controller
         if ($result['status'] === 'authorized') {
             $subscription->update(['status' => Subscription::STATUS_AUTHORIZED]);
             $this->planChangeService->applyPendingChange($request, $user);
+            $user->refresh();
         }
 
         return redirect()

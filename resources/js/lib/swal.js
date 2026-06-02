@@ -61,6 +61,11 @@ const STATUS_MESSAGES = {
         title: 'Plano atualizado',
         text: 'Seu plano foi alterado com sucesso.',
     },
+    'profile-updated': {
+        icon: 'success',
+        title: 'Perfil atualizado',
+        text: 'Seus dados foram salvos com sucesso.',
+    },
     'subscription-cancelled': {
         icon: 'success',
         title: 'Assinatura cancelada',

@@ -34,6 +34,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => fn () => $this->authPayload($request),
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
+                'devSmsMessage' => fn () => $request->session()->get('dev_sms_message'),
             ],
         ];
     }

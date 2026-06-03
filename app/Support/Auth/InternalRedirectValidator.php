@@ -33,6 +33,10 @@ class InternalRedirectValidator
             return route('profile.edit', ['section' => 'plans']);
         }
 
+        if (str_contains($url, '/settings')) {
+            return route('profile.edit', ['section' => 'settings']);
+        }
+
         return $url;
     }
 }

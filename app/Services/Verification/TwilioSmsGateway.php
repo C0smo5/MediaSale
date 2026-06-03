@@ -3,7 +3,9 @@
 namespace App\Services\Verification;
 
 use App\Contracts\Verification\SmsGateway;
+use App\Exceptions\SmsRateLimitExceeded;
 use Illuminate\Validation\ValidationException;
+use Twilio\Exceptions\RestException;
 use Twilio\Rest\Client;
 
 class TwilioSmsGateway implements SmsGateway
@@ -25,10 +27,18 @@ class TwilioSmsGateway implements SmsGateway
             ]);
         }
 
-        $this->client->messages->create($normalizedTo, [
-            'from' => $normalizedFrom,
-            'body' => $message,
-        ]);
+        try {
+            $this->client->messages->create($normalizedTo, [
+                'from' => $normalizedFrom,
+                'body' => $message,
+            ]);
+        } catch (RestException $e) {
+            if ($e->getStatusCode() === 429) {
+                throw new SmsRateLimitExceeded('Twilio SMS rate limit exceeded.', 0, $e);
+            }
+
+            throw $e;
+        }
     }
 
     private function normalizeE164(string $number): string

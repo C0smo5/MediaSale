@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\DB;
 test('active sessions endpoint returns current session', function (): void {
     $user = createUser();
 
-    $response = $this->actingAs($user)->get(route('settings'));
+    $response = $this->actingAs($user)->get(route('profile.edit', ['section' => 'settings']));
 
     $response->assertOk();
-    $props = $response->original->getData()['page']['props'];
-    expect($props['activeSessions'])->toBeArray();
+    $response->assertInertia(fn ($page) => $page
+        ->component('Profile/Edit')
+        ->has('activeSessions')
+    );
 });
 
 test('user cannot revoke another users session', function (): void {

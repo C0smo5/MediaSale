@@ -195,7 +195,7 @@ export default function AuthenticatedLayout({ children }) {
         { label: 'Dashboard', route: 'dashboard', icon: <DashboardIcon /> },
         { label: 'Chat IA', route: 'chat', icon: <ChatIcon />, isChat: true },
         { label: 'Planos', href: route('profile.edit', { section: 'plans' }), icon: <PlansNavIcon /> },
-        { label: 'Configuracoes', route: 'settings', icon: <SettingsNavIcon /> },
+        { label: 'Configuracoes', href: route('profile.edit', { section: 'settings' }), icon: <SettingsNavIcon /> },
     ];
 
     const sidebarWidth = isDesktop ? (collapsed ? '72px' : '260px') : '280px';
@@ -369,7 +369,15 @@ export default function AuthenticatedLayout({ children }) {
                     }}
                 >
                     {navLinks.map((link) => {
-                        const isActive = link.href ? pageUrl.includes('section=plans') : route().current(link.route);
+                        const isActive = link.href
+                            ? pageUrl.includes(
+                                  link.href.includes('section=plans')
+                                      ? 'section=plans'
+                                      : link.href.includes('section=settings')
+                                        ? 'section=settings'
+                                        : '',
+                              )
+                            : route().current(link.route);
 
                         return (
                             <Link
@@ -602,7 +610,7 @@ export default function AuthenticatedLayout({ children }) {
                                     <ProfileIcon /> Meu perfil
                                 </Link>
                                 <Link
-                                    href={route('settings')}
+                                    href={route('profile.edit', { section: 'settings' })}
                                     onClick={() => setUserMenuOpen(false)}
                                     style={{
                                         display: 'flex',

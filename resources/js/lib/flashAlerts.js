@@ -1,15 +1,21 @@
 import { router } from '@inertiajs/react';
-import { showErrorAlert, showFlashMessage } from '@/lib/swal';
+import { showDevSmsLogAlert, showErrorAlert, showFlashMessage } from '@/lib/swal';
 
 let lastHandledKey = '';
 
 function handlePageFlash(page) {
     const status = page?.props?.flash?.status;
+    const devSmsMessage = page?.props?.flash?.devSmsMessage;
     const googleError = page?.props?.errors?.google;
-    const pageKey = `${page?.url ?? ''}:${status ?? ''}:${googleError ?? ''}`;
+    const pageKey = `${page?.url ?? ''}:${status ?? ''}:${devSmsMessage ?? ''}:${googleError ?? ''}`;
 
     if (pageKey === lastHandledKey) {
         return;
+    }
+
+    if (devSmsMessage) {
+        lastHandledKey = pageKey;
+        showDevSmsLogAlert(devSmsMessage);
     }
 
     if (status) {

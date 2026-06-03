@@ -49,6 +49,8 @@ class RegisteredUserController extends Controller
 
         $this->registrationAccounts->touchActivity($user);
 
-        return redirect()->route('register.verify');
+        return redirect()
+            ->route('register.verify')
+            ->with('status', 'phone-code-sent');
     }
 }

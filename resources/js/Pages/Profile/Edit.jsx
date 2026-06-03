@@ -9,7 +9,26 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { ComparisonTable } from '@/Components/plans/PlansPicker';
 import { plans as unifiedPlans, plansByKey, getPlanPrice, formatBrl } from '@/data/plans';
 import { calculateUpgradeCharge, isPlanUpgrade, normalizePlanKey } from '@/lib/planUpgrade';
+import { SETTINGS_SECTIONS } from '@/data/settingsSections';
 import { getUserFirstName, getUserInitials } from '@/lib/userDisplay';
+import { AccountSettingsPanel } from '@/Pages/Settings/AccountSettingsPanel';
+
+const NavChevronIcon = ({ open }) => (
+    <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        className="flex-shrink-0 transition-transform"
+        style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        aria-hidden
+    >
+        <polyline points="6 9 12 15 18 9" />
+    </svg>
+);
 
 const LogoutIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -23,12 +42,6 @@ const SettingsIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-);
-
-const ChevronIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="9 18 15 12 9 6" />
     </svg>
 );
 
@@ -132,7 +145,15 @@ function AccountLinkingBanner({ linkedAccounts, onCreateOrinPassword }) {
     );
 }
 
-export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedAccounts }) {
+export default function Edit({
+    mustVerifyEmail,
+    initialSection = 'info',
+    initialSettingsTab = 'general',
+    linkedAccounts,
+    settings = {},
+    activeSessions = [],
+    twoFactorEnabled = false,
+}) {
     const { auth } = usePage().props;
     const user = auth?.user;
 
@@ -152,11 +173,28 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
     }
 
     const [activeSection, setActiveSection] = useState(initialSection);
+    const [settingsMenuOpen, setSettingsMenuOpen] = useState(initialSection === 'settings');
     const [pendingLinkingScroll, setPendingLinkingScroll] = useState(false);
 
     useEffect(() => {
         setActiveSection(initialSection);
+        if (initialSection === 'settings') {
+            setSettingsMenuOpen(true);
+        }
     }, [initialSection]);
+
+    const navigateProfileSection = (section, tab = null) => {
+        setActiveSection(section);
+
+        if (section === 'settings') {
+            setSettingsMenuOpen(true);
+        }
+
+        const params = tab ? { section, tab } : { section };
+        router.get(route('profile.edit', params), {}, { preserveState: true });
+    };
+
+    const isSettingsTabActive = (tab) => activeSection === 'settings' && initialSettingsTab === tab;
 
     const focusOrinPasswordField = () => {
         document.getElementById('link_password')?.focus();
@@ -203,70 +241,12 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
     const sections = [
         { key: 'info', label: 'Dados pessoais', description: 'Nome e e-mail', icon: UserIcon },
         { key: 'password', label: 'Senha', description: 'Seguranca de acesso', icon: LockIcon },
-        { key: 'settings', label: 'Configuracoes', description: 'Preferencias da conta', icon: SettingsIcon, isLink: true },
+        { key: 'settings', label: 'Configuracoes', description: 'Preferencias da conta', icon: SettingsIcon },
         { key: 'plans', label: 'Planos', description: 'Assinatura e uso', icon: PlansIcon },
         { key: 'danger', label: 'Zona de risco', description: 'Excluir conta', icon: DangerIcon, isDanger: true },
     ];
 
     const renderContent = () => {
-        if (activeSection === 'settings') {
-            return (
-                <div
-                    className="overflow-hidden rounded-2xl border"
-                    style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}
-                >
-                    <div
-                        className="border-b px-6 py-8 sm:px-8"
-                        style={{
-                            borderColor: 'rgba(124,58,237,0.10)',
-                            background: 'linear-gradient(135deg, #f0eeff 0%, #ffffff 60%)',
-                        }}
-                    >
-                        <div
-                            className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
-                            style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                        >
-                            <SettingsIcon />
-                        </div>
-                        <h2 className="text-lg font-bold" style={{ color: '#1a1040' }}>
-                            Configuracoes da conta
-                        </h2>
-                        <p className="mt-2 max-w-lg text-sm leading-relaxed" style={{ color: '#6b6b8a' }}>
-                            Notificacoes, preferencias do chat, lojas monitoradas, privacidade e guia de
-                            implementacao para o backend.
-                        </p>
-                        <Link
-                            href={route('settings')}
-                            className="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
-                            style={{
-                                background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
-                                boxShadow: '0 4px 14px rgba(124,58,237,0.25)',
-                            }}
-                        >
-                            Abrir configuracoes
-                            <ChevronIcon />
-                        </Link>
-                    </div>
-                    <div className="grid gap-3 p-6 sm:grid-cols-2">
-                        {[
-                            'Notificacoes por e-mail e SMS',
-                            'Preferencias do Chat IA',
-                            'Plano e limites de uso',
-                            'Privacidade e exportacao',
-                        ].map((item) => (
-                            <div
-                                key={item}
-                                className="rounded-xl border px-4 py-3 text-sm"
-                                style={{ borderColor: 'rgba(124,58,237,0.12)', color: '#6b6b8a' }}
-                            >
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
         if (activeSection === 'info') {
             return (
                 <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: '#ffffff', borderColor: 'rgba(124,58,237,0.12)' }}>
@@ -533,13 +513,14 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2 sm:flex-row">
-                                    <Link
-                                        href={route('settings')}
-                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white no-underline backdrop-blur-sm transition-colors hover:bg-white/25"
+                                    <button
+                                        type="button"
+                                        onClick={() => navigateProfileSection('settings', 'general')}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/25"
                                     >
                                         <SettingsIcon />
                                         Configuracoes
-                                    </Link>
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => router.post(route('logout'))}
@@ -554,10 +535,12 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
                         </div>
                     </div>
 
-                    <AccountLinkingBanner
-                        linkedAccounts={linkedAccounts}
-                        onCreateOrinPassword={scrollToOrinPassword}
-                    />
+                    {activeSection !== 'settings' && (
+                        <AccountLinkingBanner
+                            linkedAccounts={linkedAccounts}
+                            onCreateOrinPassword={scrollToOrinPassword}
+                        />
+                    )}
 
                     <div className="flex flex-col gap-6 lg:flex-row">
                         <aside className="w-full shrink-0 lg:w-72">
@@ -581,43 +564,94 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
                                     Menu do perfil
                                 </p>
                                 {sections.map((section, index) => {
-                                    const isActive = activeSection === section.key;
                                     const SectionIcon = section.icon;
 
-                                    if (section.isLink) {
+                                    if (section.key === 'settings') {
+                                        const isSettingsActive = activeSection === 'settings';
+
                                         return (
-                                            <Link
-                                                key={section.key}
-                                                href={route('settings')}
-                                                className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium no-underline transition-colors"
-                                                style={{
-                                                    borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
-                                                    color: '#7c3aed',
-                                                    backgroundColor: 'transparent',
-                                                }}
-                                            >
-                                                <span
-                                                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
-                                                    style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                                            <div key={section.key}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSettingsMenuOpen((open) => !open);
+                                                        if (!isSettingsActive) {
+                                                            navigateProfileSection('settings', 'general');
+                                                        }
+                                                    }}
+                                                    className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors"
+                                                    style={{
+                                                        borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
+                                                        backgroundColor: isSettingsActive ? '#f0eeff' : 'transparent',
+                                                        color: isSettingsActive ? '#7c3aed' : '#1a1040',
+                                                    }}
                                                 >
-                                                    <SectionIcon />
-                                                </span>
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block">{section.label}</span>
-                                                    <span className="block text-xs font-normal" style={{ color: '#6b6b8a' }}>
-                                                        {section.description}
+                                                    <span
+                                                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
+                                                        style={{
+                                                            backgroundColor: isSettingsActive
+                                                                ? 'rgba(124,58,237,0.15)'
+                                                                : 'rgba(124,58,237,0.08)',
+                                                            color: isSettingsActive ? '#7c3aed' : '#6b6b8a',
+                                                        }}
+                                                    >
+                                                        <SectionIcon />
                                                     </span>
-                                                </span>
-                                                <ChevronIcon />
-                                            </Link>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block">{section.label}</span>
+                                                        <span
+                                                            className="block text-xs font-normal"
+                                                            style={{ color: isSettingsActive ? '#7c3aed' : '#6b6b8a' }}
+                                                        >
+                                                            {section.description}
+                                                        </span>
+                                                    </span>
+                                                    <NavChevronIcon open={settingsMenuOpen} />
+                                                </button>
+                                                {settingsMenuOpen && (
+                                                    <div
+                                                        className="border-t py-1"
+                                                        style={{
+                                                            borderColor: 'rgba(124,58,237,0.08)',
+                                                            backgroundColor: '#faf9ff',
+                                                        }}
+                                                    >
+                                                        {SETTINGS_SECTIONS.map((settingsSection) => {
+                                                            const tabActive = isSettingsTabActive(settingsSection.key);
+
+                                                            return (
+                                                                <button
+                                                                    key={settingsSection.key}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        navigateProfileSection('settings', settingsSection.key)
+                                                                    }
+                                                                    className="flex w-full items-center gap-2 py-2.5 pl-14 pr-4 text-left text-sm transition-colors"
+                                                                    style={{
+                                                                        color: tabActive ? '#7c3aed' : '#6b6b8a',
+                                                                        backgroundColor: tabActive
+                                                                            ? 'rgba(124,58,237,0.08)'
+                                                                            : 'transparent',
+                                                                        fontWeight: tabActive ? 600 : 500,
+                                                                    }}
+                                                                >
+                                                                    {settingsSection.label}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
                                         );
                                     }
+
+                                    const isActive = activeSection === section.key;
 
                                     return (
                                         <button
                                             key={section.key}
                                             type="button"
-                                            onClick={() => setActiveSection(section.key)}
+                                            onClick={() => navigateProfileSection(section.key)}
                                             className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors"
                                             style={{
                                                 borderTop: index > 0 ? '1px solid rgba(124,58,237,0.07)' : 'none',
@@ -658,7 +692,19 @@ export default function Edit({ mustVerifyEmail, initialSection = 'info', linkedA
                             </nav>
                         </aside>
 
-                        <div className="min-w-0 flex-1">{renderContent()}</div>
+                        <div className="min-w-0 flex-1">
+                            {activeSection === 'settings' ? (
+                                <AccountSettingsPanel
+                                    embedded
+                                    initialSection={initialSettingsTab}
+                                    settings={settings}
+                                    activeSessions={activeSessions}
+                                    twoFactorEnabled={twoFactorEnabled}
+                                />
+                            ) : (
+                                renderContent()
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

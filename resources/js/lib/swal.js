@@ -56,6 +56,11 @@ const STATUS_MESSAGES = {
         title: 'Codigo enviado',
         text: 'Um novo codigo foi enviado por SMS.',
     },
+    'twilio-sms-rate-limit': {
+        icon: 'warning',
+        title: 'Limite de SMS',
+        text: 'Muitas tentativas de envio por SMS. Aguarde alguns minutos e tente novamente.',
+    },
     'plan-updated': {
         icon: 'success',
         title: 'Plano atualizado',
@@ -123,6 +128,20 @@ const STATUS_MESSAGES = {
         text: 'Todas as outras sessoes foram encerradas.',
     },
 };
+
+/**
+ * Provisório: exibe a mensagem SMS gravada no log quando SMS_DRIVER=log.
+ *
+ * @param {string} message
+ */
+export function showDevSmsLogAlert(message) {
+    return orinSwal.fire({
+        icon: 'info',
+        title: 'SMS (modo log)',
+        text: message,
+        footer: 'Provisorio: SMS_DRIVER=log. Veja tambem storage/logs/laravel.log',
+    });
+}
 
 /**
  * @param {string} status

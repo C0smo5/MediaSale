@@ -14,9 +14,18 @@ test('login redirect allows safe internal paths', function (string $url): void {
     '/dashboard',
     '/profile',
     '/profile/edit',
-    '/settings',
     '/chat',
 ]);
+
+test('login redirect for /settings goes to profile settings section', function (): void {
+    $user = User::factory()->create();
+
+    $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'redirect' => '/settings',
+    ])->assertRedirect(route('profile.edit', ['section' => 'settings']));
+});
 
 test('login redirect for /plans goes to profile plans section', function (): void {
     $user = User::factory()->create();

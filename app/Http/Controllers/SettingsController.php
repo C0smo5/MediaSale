@@ -3,30 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateSettingsRequest;
-use App\Services\Auth\SessionManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class SettingsController extends Controller
 {
-    public function __construct(
-        private readonly SessionManagementService $sessions,
-    ) {}
-
-    public function show(Request $request): Response
+    public function show(Request $request): RedirectResponse
     {
         $this->authorize('viewSettings', $request->user());
 
-        $user = $request->user();
-        $sessionId = $request->session()->getId();
+        $tab = $request->query('tab');
 
-        return Inertia::render('Settings/Index', [
-            'settings' => $user->settings ?? (object) [],
-            'activeSessions' => $this->sessions->listActiveSessions($user, $sessionId),
-            'twoFactorEnabled' => $user->hasEnabledTwoFactorAuthentication(),
-        ]);
+        return redirect()->route('profile.edit', array_filter([
+            'section' => 'settings',
+            'tab' => is_string($tab) ? $tab : null,
+        ]));
     }
 
     public function update(UpdateSettingsRequest $request): RedirectResponse
@@ -39,6 +30,8 @@ class SettingsController extends Controller
 
         $user->forceFill(['settings' => $merged])->save();
 
-        return back()->with('status', 'settings-saved');
+        return redirect()
+            ->route('profile.edit', ['section' => 'settings'])
+            ->with('status', 'settings-saved');
     }
 }

@@ -29,10 +29,11 @@ class VerificationCodeService
     {
         $code = $this->createCode($user, VerificationCode::CHANNEL_PHONE);
 
-        $this->smsGateway->send(
-            $user->phone,
-            'Seu codigo Orin: '.$code
-        );
+        $message = 'Seu codigo Orin: '.$code;
+
+        $this->smsGateway->send($user->phone, $message);
+
+        $this->flashDevSmsMessageForLogDriver($message);
 
         return $code;
     }
@@ -162,5 +163,17 @@ class VerificationCodeService
         ]);
 
         return $code;
+    }
+
+    /**
+     * Provisório: com SMS_DRIVER=log, expõe a mesma mensagem gravada no laravel.log.
+     */
+    private function flashDevSmsMessageForLogDriver(string $message): void
+    {
+        if (config('registration.sms.driver') !== 'log') {
+            return;
+        }
+
+        session()->flash('dev_sms_message', $message);
     }
 }

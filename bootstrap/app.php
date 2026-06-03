@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\SmsRateLimitExceeded;
 use App\Http\Middleware\EnsureRegistrationComplete;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TouchRegistrationActivity;
@@ -60,5 +61,13 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (SmsRateLimitExceeded $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Limite de envio de SMS atingido. Tente novamente em alguns minutos.',
+                ], 429);
+            }
+
+            return back()->with('status', 'twilio-sms-rate-limit');
+        });
     })->create();

@@ -43,7 +43,7 @@ test('login redirects to plans when redirect param is provided', function () {
 
     $redirect = route('plans', ['plan' => 'starter', 'billing' => 'monthly'], false);
 
-    $this->post(route('login'), [
+    $this->post(route('login.store'), [
         'email' => 'plansuser@gmail.com',
         'password' => 'password',
         'redirect' => $redirect,
@@ -56,7 +56,7 @@ test('login rejects external redirect urls', function () {
         'password' => bcrypt('password'),
     ]);
 
-    $this->post(route('login'), [
+    $this->post(route('login.store'), [
         'email' => 'safeuser@gmail.com',
         'password' => 'password',
         'redirect' => 'https://evil.example/phish',

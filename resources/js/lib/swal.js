@@ -92,20 +92,20 @@ const STATUS_MESSAGES = {
         title: 'Configuracoes salvas',
         text: 'Suas preferencias foram atualizadas.',
     },
-    '2fa-enabled': {
+    'two-factor-authentication-enabled': {
         icon: 'success',
-        title: '2FA ativado',
-        text: 'A autenticacao em dois fatores esta ativa na sua conta.',
+        title: '2FA iniciado',
+        text: 'Escaneie o QR code e confirme com o codigo do aplicativo.',
     },
-    '2fa-disabled': {
+    'two-factor-authentication-confirmed': {
+        icon: 'success',
+        title: '2FA ativo',
+        text: 'Autenticacao em dois fatores confirmada com sucesso.',
+    },
+    'two-factor-authentication-disabled': {
         icon: 'info',
         title: '2FA desativado',
         text: 'A autenticacao em dois fatores foi removida.',
-    },
-    'sms-fallback-toggled': {
-        icon: 'success',
-        title: 'Preferencia atualizada',
-        text: 'A opcao de SMS como fallback do 2FA foi atualizada.',
     },
     'sms-sent': {
         icon: 'info',

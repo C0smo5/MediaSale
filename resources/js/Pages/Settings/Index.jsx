@@ -220,23 +220,35 @@ function PriorityBadge({ priority }) {
     );
 }
 
-function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSessions }) {
+function csrfHeaders() {
+    return {
+        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
+        Accept: 'application/json',
+    };
+}
+
+function SecuritySection({ twoFactorEnabled, activeSessions }) {
     const [qrSvg, setQrSvg] = useState(null);
-    const [pendingSecret, setPendingSecret] = useState(null);
     const [confirmProcessing, setConfirmProcessing] = useState(false);
     const [code, setCode] = useState('');
     const [codeError, setCodeError] = useState('');
     const [recoveryCodes, setRecoveryCodes] = useState(null);
 
-    const startSetup = async () => {
-        setQrSvg(null);
-        setPendingSecret(null);
-        const res = await fetch(route('two-factor.setup'), { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '', Accept: 'application/json' } });
+    const loadQrCode = async () => {
+        const res = await fetch(route('two-factor.qr-code'), { headers: csrfHeaders() });
         if (res.ok) {
             const data = await res.json();
-            setQrSvg(data.qr_code_svg);
-            setPendingSecret(data.secret);
+            setQrSvg(data.svg ?? null);
         }
+    };
+
+    const startSetup = () => {
+        setQrSvg(null);
+        setRecoveryCodes(null);
+        router.post(route('two-factor.enable'), {}, {
+            preserveScroll: true,
+            onSuccess: () => loadQrCode(),
+        });
     };
 
     const confirmSetup = (e) => {
@@ -245,7 +257,7 @@ function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSession
         setCodeError('');
         router.post(route('two-factor.confirm'), { code }, {
             onError: (errs) => { setCodeError(errs.code ?? 'Código inválido.'); setConfirmProcessing(false); },
-            onSuccess: () => { setQrSvg(null); setPendingSecret(null); setConfirmProcessing(false); setCode(''); },
+            onSuccess: () => { setQrSvg(null); setConfirmProcessing(false); setCode(''); router.reload({ only: ['twoFactorEnabled'] }); },
         });
     };
 
@@ -255,7 +267,10 @@ function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSession
             router.visit(route('password.confirm'));
             return;
         }
-        if (res.ok) setRecoveryCodes(await res.json().then(d => d.codes));
+        if (res.ok) {
+            const codes = await res.json();
+            setRecoveryCodes(Array.isArray(codes) ? codes : []);
+        }
     };
 
     return (
@@ -298,7 +313,6 @@ function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSession
                     <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'rgba(124,58,237,0.2)', backgroundColor: '#f8f7ff' }}>
                         <p className="text-sm font-medium" style={{ color: '#1a1040' }}>Escaneie o QR code no seu app autenticador:</p>
                         <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-                        {pendingSecret && <p className="break-all rounded bg-white px-3 py-2 text-xs font-mono" style={{ color: '#6b6b8a' }}>{pendingSecret}</p>}
                         <form onSubmit={confirmSetup} className="flex gap-2">
                             <input type="text" maxLength={6} inputMode="numeric" placeholder="Código de 6 dígitos" value={code} onChange={e => setCode(e.target.value)} className="orin-input flex-1 rounded-xl border px-3 py-2 text-sm" />
                             <button type="submit" disabled={confirmProcessing} className="rounded-xl px-4 py-2 text-sm font-semibold text-white" style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}>Confirmar</button>
@@ -351,7 +365,7 @@ function SecuritySection({ twoFactorEnabled, twoFactorSmsFallback, activeSession
     );
 }
 
-export default function SettingsIndex({ settings = {}, activeSessions = [], twoFactorEnabled = false, twoFactorSmsFallback = false }) {
+export default function SettingsIndex({ settings = {}, activeSessions = [], twoFactorEnabled = false }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const currentPlan = plansByKey[user.plan_key ?? 'trial'] ?? plansByKey.trial;
@@ -558,7 +572,6 @@ export default function SettingsIndex({ settings = {}, activeSessions = [], twoF
             case 'security':
                 return <SecuritySection
                     twoFactorEnabled={twoFactorEnabled}
-                    twoFactorSmsFallback={twoFactorSmsFallback}
                     activeSessions={activeSessions}
                 />;
 

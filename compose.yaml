@@ -10,7 +10,7 @@ services:
             - 'host.docker.internal:host-gateway'
         ports:
             - '${APP_PORT:-80}:80'
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+            # Vite runs on the host via `npm run dev` / `composer dev` (127.0.0.1:5173), not inside this container.
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1

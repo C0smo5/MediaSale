@@ -17,13 +17,12 @@ test('login is throttled after 5 failed attempts', function (): void {
         ]);
     }
 
-    $this->post('/login', [
+    $response = $this->post('/login', [
         'email' => 'test@example.com',
         'password' => 'correct-password',
-    ])->assertSessionHasErrors('email');
+    ]);
 
-    $error = session('errors')?->first('email') ?? '';
-    expect($error)->toContain('Too many login attempts');
+    expect($response->status())->toBe(429);
 });
 
 test('login succeeds after clearing rate limiter', function (): void {

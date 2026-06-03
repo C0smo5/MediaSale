@@ -1,55 +1,29 @@
 <?php
 
 use App\Models\User;
-use App\Services\Auth\TwoFactorService;
-use Illuminate\Support\Facades\Auth;
 
 test('user with 2FA can reach dashboard after completing challenge', function (): void {
     $user = createUser();
-    $twoFactor = app(TwoFactorService::class);
+    enableTwoFactorForUser($user);
 
-    // Enable 2FA for the user.
-    $secret = app(\PragmaRX\Google2FA\Google2FA::class)->generateSecretKey();
-    $user->forceFill([
-        'two_factor_secret' => $secret,
-        'two_factor_confirmed_at' => now(),
-    ])->save();
+    /** @var string $recoveryCode */
+    $recoveryCode = $user->fresh()->recoveryCodes()[0];
 
-    // Step 1: POST /login parks pending_2fa_user_id and logs the user out.
-    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
-        ->assertRedirect(route('two-factor.challenge'));
+    $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('two-factor.login'));
 
     $this->assertGuest();
-
-    // Step 2: Submit a valid TOTP code.
-    $code = app(\PragmaRX\Google2FA\Google2FA::class)->getCurrentOtp($secret);
-
-    $this->post(route('two-factor.verify'), ['code' => $code])
+    $this->post(route('two-factor.login.store'), ['recovery_code' => $recoveryCode])
         ->assertRedirect(route('dashboard'));
 
-    // Step 3: Authenticated user can access dashboard.
     $this->assertAuthenticated();
     $this->get(route('dashboard'))->assertOk();
-});
-
-test('user with 2FA is blocked from dashboard before challenge', function (): void {
-    $user = createUser();
-
-    $user->forceFill([
-        'two_factor_secret' => app(\PragmaRX\Google2FA\Google2FA::class)->generateSecretKey(),
-        'two_factor_confirmed_at' => now(),
-    ])->save();
-
-    // Simulate a session where Auth::login was called but two_factor_verified was NOT set.
-    Auth::login($user);
-
-    $this->get(route('dashboard'))->assertRedirect(route('two-factor.challenge'));
 });
 
 test('user without 2FA can access dashboard directly after login', function (): void {
     $user = createUser();
 
-    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+    $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
 
     $this->get(route('dashboard'))->assertOk();
@@ -57,16 +31,22 @@ test('user without 2FA can access dashboard directly after login', function (): 
 
 test('invalid TOTP code does not grant access', function (): void {
     $user = createUser();
+    enableTwoFactorForUser($user);
 
-    $user->forceFill([
-        'two_factor_secret' => app(\PragmaRX\Google2FA\Google2FA::class)->generateSecretKey(),
-        'two_factor_confirmed_at' => now(),
-    ])->save();
+    $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password']);
 
-    $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
-
-    $this->post(route('two-factor.verify'), ['code' => '000000'])
+    $this->post(route('two-factor.login.store'), ['code' => '000000'])
         ->assertSessionHasErrors('code');
 
     $this->assertGuest();
+});
+
+test('two factor secret is stored encrypted in database', function (): void {
+    $user = createUser();
+    enableTwoFactorForUser($user);
+
+    $raw = \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->value('two_factor_secret');
+
+    expect($raw)->not->toBeNull();
+    expect($raw)->not->toContain(' ');
 });

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
  * @method static UserFactory factory($count = null, $state = [])
@@ -16,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -67,9 +68,6 @@ class User extends Authenticatable
             'verify_account' => 'boolean',
             'registration_last_activity_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
-            'two_factor_sms_fallback' => 'boolean',
-            'two_factor_secret' => 'encrypted',
-            'two_factor_recovery_codes' => 'encrypted:array',
             'settings' => 'array',
             'cpf' => 'encrypted',
             'phone' => 'encrypted',

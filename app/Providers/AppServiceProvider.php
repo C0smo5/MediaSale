@@ -25,8 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(\PragmaRX\Google2FA\Google2FA::class);
-
         $this->app->bind(SmsGateway::class, function ($app) {
             return match (config('registration.sms.driver')) {
                 'log' => $app->make(LogSmsGateway::class),

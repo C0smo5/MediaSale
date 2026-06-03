@@ -56,7 +56,7 @@ export default function UpdatePasswordForm({ className = '' }) {
 
     const updatePassword = (event) => {
         event.preventDefault();
-        put(route('password.update'), {
+        put(route('profile.password.update'), {
             preserveScroll: true,
             onSuccess: () => reset(),
             onError: (formErrors) => {

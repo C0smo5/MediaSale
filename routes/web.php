@@ -7,7 +7,6 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPaymentController;
 use App\Http\Controllers\UserPlanController;
-use App\Http\Controllers\Auth\TwoFactorController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -56,22 +55,11 @@ Route::get('/plans', function () {
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'registration.complete', 'two_factor.verified'])->name('dashboard');
+})->middleware(['auth', 'registration.complete'])->name('dashboard');
 
 Route::get('/chat', function () {
     return Inertia::render('Chat');
-})->middleware(['auth', 'registration.complete', 'two_factor.verified'])->name('chat');
-
-// 2FA challenge (guest — user is not fully logged in yet)
-Route::get('/two-factor/challenge', [TwoFactorController::class, 'challengeView'])
-    ->middleware('guest')
-    ->name('two-factor.challenge');
-Route::post('/two-factor/challenge', [TwoFactorController::class, 'challengeVerify'])
-    ->middleware(['guest', 'throttle:6,1'])
-    ->name('two-factor.verify');
-Route::post('/two-factor/challenge/sms', [TwoFactorController::class, 'challengeSendSms'])
-    ->middleware(['guest', 'throttle:6,1'])
-    ->name('two-factor.challenge.sms');
+})->middleware(['auth', 'registration.complete'])->name('chat');
 
 Route::middleware('auth')->group(function () {
     Route::post('/plans/select', [UserPlanController::class, 'store'])->name('plans.update');
@@ -91,22 +79,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/sessions', [ActiveSessionController::class, 'destroyOthers'])
         ->middleware('password.confirm')
         ->name('sessions.destroy-others');
-
-    // 2FA management (in settings)
-    Route::post('/two-factor/setup', [TwoFactorController::class, 'setup'])
-        ->name('two-factor.setup');
-    Route::post('/two-factor/confirm', [TwoFactorController::class, 'confirm'])
-        ->middleware('password.confirm')
-        ->name('two-factor.confirm');
-    Route::delete('/two-factor', [TwoFactorController::class, 'disable'])
-        ->middleware('password.confirm')
-        ->name('two-factor.disable');
-    Route::get('/two-factor/recovery-codes', [TwoFactorController::class, 'recoveryCodes'])
-        ->middleware('password.confirm')
-        ->name('two-factor.recovery-codes');
-    Route::post('/two-factor/sms-fallback', [TwoFactorController::class, 'toggleSmsFallback'])
-        ->middleware('password.confirm')
-        ->name('two-factor.sms-fallback');
 });
 
 Route::middleware(['auth', 'registration.complete'])->group(function () {

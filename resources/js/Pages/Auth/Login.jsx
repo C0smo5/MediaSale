@@ -28,7 +28,7 @@ export default function Login({ canResetPassword, redirect: redirectTo = null, e
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
+        post(route('login.store'), {
             onFinish: () => reset('password'),
         });
     };

@@ -55,3 +55,33 @@ function createUser(array $attributes = []): User
 {
     return User::factory()->createOne($attributes);
 }
+
+/**
+ * Enable and confirm Fortify 2FA for a user; returns the decrypted TOTP secret for OTP generation.
+ *
+ * @return non-empty-string Base32 secret for {@see \Tests\Support\TotpCodeGenerator} (not Fortify provider).
+ */
+function enableTwoFactorForUser(User $user): string
+{
+    $enable = app(\Laravel\Fortify\Actions\EnableTwoFactorAuthentication::class);
+    $enable($user, true);
+    $user->refresh();
+
+    $secret = \Laravel\Fortify\Fortify::currentEncrypter()->decrypt($user->two_factor_secret);
+
+    if (\Laravel\Fortify\Fortify::confirmsTwoFactorAuthentication()) {
+        $user->forceFill(['two_factor_confirmed_at' => now()])->save();
+    }
+
+    $user->refresh();
+
+    return $secret;
+}
+
+/**
+ * Valid 6-digit TOTP for Fortify two-factor challenge (uses Google2FA, not Fortify provider).
+ */
+function totpCodeForSecret(string $secret): string
+{
+    return \Tests\Support\TotpCodeGenerator::forSecret($secret);
+}

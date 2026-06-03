@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 const ShieldIcon = () => (
@@ -12,21 +12,19 @@ const ShieldIcon = () => (
     </svg>
 );
 
-export default function TwoFactorChallenge({ smsFallbackAvailable = false }) {
+export default function TwoFactorChallenge() {
     const [useRecovery, setUseRecovery] = useState(false);
-    const [smsSent, setSmsSent] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({ code: '' });
+    const { data, setData, processing, errors, reset } = useForm({ code: '' });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('two-factor.verify'), { onError: () => reset('code') });
-    };
 
-    const sendSms = () => {
-        router.post(route('two-factor.challenge.sms'), {}, {
-            onSuccess: () => setSmsSent(true),
-        });
+        router.post(
+            route('two-factor.login.store'),
+            useRecovery ? { recovery_code: data.code } : { code: data.code },
+            { onError: () => reset('code') },
+        );
     };
 
     return (
@@ -41,8 +39,6 @@ export default function TwoFactorChallenge({ smsFallbackAvailable = false }) {
                 <p className="mt-2 text-sm text-muted">
                     {useRecovery
                         ? 'Digite um dos seus códigos de recuperação.'
-                        : smsSent
-                        ? 'Enviamos um código por SMS. Verifique seu celular.'
                         : 'Digite o código do seu aplicativo autenticador.'}
                 </p>
             </div>
@@ -71,16 +67,6 @@ export default function TwoFactorChallenge({ smsFallbackAvailable = false }) {
             </form>
 
             <div className="mt-6 flex flex-col gap-2 text-center text-sm">
-                {smsFallbackAvailable && !useRecovery && (
-                    <button
-                        type="button"
-                        onClick={sendSms}
-                        className="text-brand hover:underline disabled:opacity-50"
-                        disabled={smsSent}
-                    >
-                        {smsSent ? 'Código enviado' : 'Receber código por SMS'}
-                    </button>
-                )}
                 <button
                     type="button"
                     onClick={() => { setUseRecovery(!useRecovery); reset('code'); }}

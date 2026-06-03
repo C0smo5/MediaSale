@@ -11,8 +11,6 @@ class VerificationCode extends Model
 
     public const CHANNEL_PHONE = 'phone';
 
-    public const CHANNEL_TWO_FACTOR_SMS = 'two_factor_sms';
-
     /**
      * @var list<string>
      */

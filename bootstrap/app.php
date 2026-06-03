@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Middleware\EnsureRegistrationComplete;
-use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TouchRegistrationActivity;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
@@ -23,7 +23,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'registration.complete' => EnsureRegistrationComplete::class,
-            'two_factor.verified' => EnsureTwoFactorVerified::class,
             'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         ]);
 
@@ -59,4 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return route('dashboard');
         });
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
     })->create();

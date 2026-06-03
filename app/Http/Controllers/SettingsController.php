@@ -25,8 +25,7 @@ class SettingsController extends Controller
         return Inertia::render('Settings/Index', [
             'settings' => $user->settings ?? (object) [],
             'activeSessions' => $this->sessions->listActiveSessions($user, $sessionId),
-            'twoFactorEnabled' => $user->two_factor_confirmed_at !== null,
-            'twoFactorSmsFallback' => (bool) ($user->two_factor_sms_fallback ?? false),
+            'twoFactorEnabled' => $user->hasEnabledTwoFactorAuthentication(),
         ]);
     }
 

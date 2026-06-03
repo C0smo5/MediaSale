@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Auth\AccountLinkingService;
+use App\Services\Auth\FortifyTwoFactorChallenge;
 use App\Services\Registration\RegistrationAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class GoogleAuthController extends Controller
     public function __construct(
         private readonly RegistrationAccountService $registrationAccounts,
         private readonly AccountLinkingService $accountLinking,
+        private readonly FortifyTwoFactorChallenge $twoFactorChallenge,
     ) {}
 
     public function redirect(): RedirectResponse
@@ -85,7 +87,7 @@ class GoogleAuthController extends Controller
 
         $this->clearLinkIntent();
 
-        return $this->handleLogin($googleUser);
+        return $this->handleLogin($request, $googleUser);
     }
 
     public function unlink(Request $request): RedirectResponse
@@ -126,7 +128,7 @@ class GoogleAuthController extends Controller
             ->with('status', 'google-linked');
     }
 
-    private function handleLogin(SocialiteUserContract $googleUser): RedirectResponse
+    private function handleLogin(Request $request, SocialiteUserContract $googleUser): RedirectResponse
     {
         $email = $googleUser->getEmail();
 
@@ -160,7 +162,12 @@ class GoogleAuthController extends Controller
         }
 
         Auth::login($user, true);
-        request()->session()->regenerate();
+
+        if ($twoFactorResponse = $this->twoFactorChallenge->redirectIfEnabled($request, $user->fresh(), true)) {
+            return $twoFactorResponse;
+        }
+
+        $request->session()->regenerate();
 
         if ($relinkingCompletedOrinAccount ?? false) {
             return redirect()

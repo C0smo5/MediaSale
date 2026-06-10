@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Contracts\Ai\AiEngineClient;
 use App\Contracts\Verification\SmsGateway;
 use App\Models\User;
 use App\Policies\PlanPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Ai\HttpAiEngineClient;
+use App\Services\Ai\LogAiEngineClient;
 use App\Services\Payment\MercadoPagoService;
 use App\Services\Verification\LogSmsGateway;
 use App\Services\Verification\TwilioSmsGateway;
@@ -42,6 +45,20 @@ class AppServiceProvider extends ServiceProvider
                 new Client($config['account_sid'], $config['auth_token']),
                 $config['from'],
             );
+        });
+
+        $this->app->bind(AiEngineClient::class, function () {
+            return match (config('ai.driver')) {
+                'log'  => new LogAiEngineClient,
+                'http' => new HttpAiEngineClient(
+                    baseUrl: (string) config('ai.http.base_url'),
+                    timeout: (int) config('ai.http.timeout'),
+                    token: config('ai.http.token') ?: null,
+                ),
+                default => throw new InvalidArgumentException(
+                    'Unsupported AI engine driver: '.config('ai.driver')
+                ),
+            };
         });
 
         $this->app->singleton(MercadoPagoService::class, function () {

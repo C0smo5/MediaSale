@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActiveSessionController;
+use App\Http\Controllers\ChatAnalysisController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
@@ -60,6 +61,10 @@ Route::get('/dashboard', function () {
 Route::get('/chat', function () {
     return Inertia::render('Chat');
 })->middleware(['auth', 'registration.complete'])->name('chat');
+
+Route::post('/chat/analyze', [ChatAnalysisController::class, 'analyze'])
+    ->middleware(['auth', 'registration.complete'])
+    ->name('chat.analyze');
 
 Route::middleware('auth')->group(function () {
     Route::post('/plans/select', [UserPlanController::class, 'store'])->name('plans.update');

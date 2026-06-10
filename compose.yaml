@@ -22,7 +22,27 @@ services:
         networks:
             - sail
         depends_on:
-            - mysql
+            mysql:
+                condition: service_healthy
+            ai-engine:
+                condition: service_healthy
+    ai-engine:
+        build:
+            context: ./services/ai-engine
+            dockerfile: Dockerfile
+        ports:
+            - '${AI_ENGINE_PORT:-8001}:8000'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - python
+                - -c
+                - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+            interval: 10s
+            retries: 5
+            timeout: 5s
     scheduler:
         image: sail-8.5/app
         extra_hosts:
